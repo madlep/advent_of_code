@@ -37,7 +37,7 @@ fn first_last_digit(line: &str) -> (u32, u32) {
 fn first_last_digit_words(line: &str) -> (u32, u32) {
     let mut n1 = 0;
     for i in 0..line.len() {
-        let n = parse_digit_or_word(&line[i..]);
+        let n = parse_digit_or_word_start(&line[i..]);
         if n.is_some() {
             n1 = n.unwrap();
             break;
@@ -45,9 +45,8 @@ fn first_last_digit_words(line: &str) -> (u32, u32) {
     }
 
     let mut n2 = 0;
-    let line_rev: String = line.chars().rev().collect();
-    for i in 0..line_rev.len() {
-        let n = parse_digit_or_word_rev(&line_rev[i..]);
+    for i in 0..line.len() {
+        let n = parse_digit_or_word_end(&line[0..line.len() - i]);
         if n.is_some() {
             n2 = n.unwrap();
             break;
@@ -56,7 +55,7 @@ fn first_last_digit_words(line: &str) -> (u32, u32) {
     (n1, n2)
 }
 
-fn parse_digit_or_word(s: &str) -> Option<u32> {
+fn parse_digit_or_word_start(s: &str) -> Option<u32> {
     match s {
         s if s.starts_with("zero") || s.starts_with("0") => Some(0),
         s if s.starts_with("one") || s.starts_with("1") => Some(1),
@@ -72,18 +71,18 @@ fn parse_digit_or_word(s: &str) -> Option<u32> {
     }
 }
 
-fn parse_digit_or_word_rev(s: &str) -> Option<u32> {
+fn parse_digit_or_word_end(s: &str) -> Option<u32> {
     match s {
-        s if s.starts_with("orez") || s.starts_with("0") => Some(0),
-        s if s.starts_with("eno") || s.starts_with("1") => Some(1),
-        s if s.starts_with("owt") || s.starts_with("2") => Some(2),
-        s if s.starts_with("eerht") || s.starts_with("3") => Some(3),
-        s if s.starts_with("ruof") || s.starts_with("4") => Some(4),
-        s if s.starts_with("evif") || s.starts_with("5") => Some(5),
-        s if s.starts_with("xis") || s.starts_with("6") => Some(6),
-        s if s.starts_with("neves") || s.starts_with("7") => Some(7),
-        s if s.starts_with("thgie") || s.starts_with("8") => Some(8),
-        s if s.starts_with("enin") || s.starts_with("9") => Some(9),
+        s if s.ends_with("zero") || s.ends_with("0") => Some(0),
+        s if s.ends_with("one") || s.ends_with("1") => Some(1),
+        s if s.ends_with("two") || s.ends_with("2") => Some(2),
+        s if s.ends_with("three") || s.ends_with("3") => Some(3),
+        s if s.ends_with("four") || s.ends_with("4") => Some(4),
+        s if s.ends_with("five") || s.ends_with("5") => Some(5),
+        s if s.ends_with("six") || s.ends_with("6") => Some(6),
+        s if s.ends_with("seven") || s.ends_with("7") => Some(7),
+        s if s.ends_with("eight") || s.ends_with("8") => Some(8),
+        s if s.ends_with("nine") || s.ends_with("9") => Some(9),
         &_ => None,
     }
 }
