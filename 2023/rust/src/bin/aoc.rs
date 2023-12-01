@@ -1,6 +1,8 @@
+use aoc2023::days::{Day, Part};
+
+use std::error::Error;
 use std::path::PathBuf;
 
-use aoc2023::days::{Day, Part};
 use clap::Parser;
 
 #[derive(Parser)]
@@ -15,14 +17,10 @@ struct Cli {
     file: Option<PathBuf>,
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let (day, part, file_path) = parse_args();
 
-    let output = aoc2023::run(day, part, file_path)?;
-
-    println!("{}", output);
-
-    Ok(())
+    aoc2023::run(day, part, file_path).map(|output| println!("{}", output))
 }
 
 fn parse_args() -> (Day, Part, PathBuf) {

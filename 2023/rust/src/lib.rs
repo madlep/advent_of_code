@@ -1,15 +1,15 @@
-pub mod days;
+use crate::days::*;
 
+use std::error::Error;
+use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-use std::fs::File;
+pub mod days;
 
-use crate::days::*;
-
-pub fn run(day: Day, part: Part, path: PathBuf) -> std::io::Result<String> {
+pub fn run(day: Day, part: Part, path: PathBuf) -> Result<String, Box<dyn Error>> {
     let data = load_data(path)?;
-    Ok(days::run_day_part(day, part, data))
+    days::run_day_part(day, part, data.as_str())
 }
 
 fn load_data(file_path: PathBuf) -> Result<String, std::io::Error> {
