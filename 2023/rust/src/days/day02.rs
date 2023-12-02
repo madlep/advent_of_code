@@ -57,6 +57,7 @@ impl Game {
 
 type ColorCount = u32;
 
+use Color::*;
 #[derive(Debug, PartialEq)]
 enum Color {
     Red(ColorCount),
@@ -107,16 +108,16 @@ struct DuplicateColorError(Color);
 impl HandfulBuilder {
     fn color(self, col: Color) -> Result<Self, DuplicateColorError> {
         match col {
-            Color::Red(count) if self.r.is_none() => Ok(Self {
+            Red(count) if self.r.is_none() => Ok(Self {
                 r: Some(count),
                 ..self
             }),
-            Color::Green(count) if self.g.is_none() => Ok(Self {
+            Green(count) if self.g.is_none() => Ok(Self {
                 g: Some(count),
                 ..self
             }),
 
-            Color::Blue(count) if self.b.is_none() => Ok(Self {
+            Blue(count) if self.b.is_none() => Ok(Self {
                 b: Some(count),
                 ..self
             }),
@@ -183,9 +184,9 @@ fn handful_colors(s: &str) -> IResult<&str, Vec<Color>> {
 
 fn handful_color(s: &str) -> IResult<&str, Color> {
     //3 blue
-    let r = map(terminated(u32, tag(" red")), |count| Color::Red(count));
-    let g = map(terminated(u32, tag(" green")), |count| Color::Green(count));
-    let b = map(terminated(u32, tag(" blue")), |count| Color::Blue(count));
+    let r = map(terminated(u32, tag(" red")), |count| Red(count));
+    let g = map(terminated(u32, tag(" green")), |count| Green(count));
+    let b = map(terminated(u32, tag(" blue")), |count| Blue(count));
 
     alt((r, g, b))(s)
 }
@@ -237,8 +238,8 @@ Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue";
 
     #[test]
     fn parse_handful_colors() {
-        assert_eq!(handful_color("6 red"), Ok(("", Color::Red(6))));
-        assert_eq!(handful_color("3 blue"), Ok(("", Color::Blue(3))));
-        assert_eq!(handful_color("7 green"), Ok(("", Color::Green(7))));
+        assert_eq!(handful_color("6 red"), Ok(("", Red(6))));
+        assert_eq!(handful_color("3 blue"), Ok(("", Blue(3))));
+        assert_eq!(handful_color("7 green"), Ok(("", Green(7))));
     }
 }
