@@ -64,16 +64,6 @@ enum Color {
     Blue(ColorCount),
 }
 
-impl Color {
-    fn count(&self) -> ColorCount {
-        match self {
-            Color::Red(c) => *c,
-            Color::Green(c) => *c,
-            Color::Blue(c) => *c,
-        }
-    }
-}
-
 #[derive(Debug, PartialEq)]
 struct Handful {
     r: ColorCount,
@@ -108,10 +98,14 @@ impl Handful {
 }
 
 struct HandfulBuilder {
-    r: Option<Color>,
-    g: Option<Color>,
-    b: Option<Color>,
+    r: Option<ColorCount>,
+    g: Option<ColorCount>,
+    b: Option<ColorCount>,
 }
+
+#[derive(thiserror::Error, Debug, PartialEq)]
+#[error("`setting {0:?} count more than once`")]
+struct DuplicateColorError(Color);
 
 impl HandfulBuilder {
     fn new() -> Self {
@@ -122,29 +116,30 @@ impl HandfulBuilder {
         }
     }
 
-    fn color(mut self, col: Color) -> Result<Self, ColorError> {
+    fn color(self, col: Color) -> Result<Self, DuplicateColorError> {
         match col {
-            Color::Red(_) if self.r.is_none() => {
-                self.r = Some(col);
-                Ok(self)
-            }
-            Color::Green(_) if self.g.is_none() => {
-                self.g = Some(col);
-                Ok(self)
-            }
-            Color::Blue(_) if self.b.is_none() => {
-                self.b = Some(col);
-                Ok(self)
-            }
-            _ => Err(ColorError::DuplicateColorError(col)),
+            Color::Red(count) if self.r.is_none() => Ok(Self {
+                r: Some(count),
+                ..self
+            }),
+            Color::Green(count) if self.g.is_none() => Ok(Self {
+                g: Some(count),
+                ..self
+            }),
+
+            Color::Blue(count) if self.b.is_none() => Ok(Self {
+                b: Some(count),
+                ..self
+            }),
+            _ => Err(DuplicateColorError(col)),
         }
     }
 
     fn build(self) -> Handful {
         Handful::new(
-            self.r.map_or(0, |c| c.count()),
-            self.g.map_or(0, |c| c.count()),
-            self.b.map_or(0, |c| c.count()),
+            self.r.unwrap_or_default(),
+            self.g.unwrap_or_default(),
+            self.b.unwrap_or_default(),
         )
     }
 }
@@ -153,13 +148,9 @@ impl HandfulBuilder {
 #[error("error parsing: `{0}`")]
 struct ParseError(String);
 
-#[derive(thiserror::Error, Debug, PartialEq)]
-enum ColorError {
-    #[error("`setting {0:?} count more than once`")]
-    DuplicateColorError(Color),
-}
-
 fn parse(data: &str) -> Result<Vec<Game>, Box<dyn std::error::Error>> {
+    //Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+    //Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue";
     match separated_list0(tag("\n"), game)(data) {
         Ok((_rest, games)) => Ok(games),
         Err(e) => Err(ParseError(e.to_string()).into()),
@@ -167,6 +158,7 @@ fn parse(data: &str) -> Result<Vec<Game>, Box<dyn std::error::Error>> {
 }
 
 fn game(s: &str) -> IResult<&str, Game> {
+    //Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
     map(pair(game_id, handfuls), |(id, hfs)| Game {
         id,
         handfuls: hfs,
@@ -174,14 +166,17 @@ fn game(s: &str) -> IResult<&str, Game> {
 }
 
 fn game_id(s: &str) -> IResult<&str, GameID> {
+    //Game 1:
     delimited(tag("Game "), u32, tag(": "))(s)
 }
 
 fn handfuls(s: &str) -> IResult<&str, Vec<Handful>> {
+    //3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
     separated_list0(tag("; "), handful)(s)
 }
 
 fn handful(s: &str) -> IResult<&str, Handful> {
+    //3 blue, 4 red
     map_res(handful_colors, |colors| {
         colors
             .into_iter()
@@ -193,10 +188,12 @@ fn handful(s: &str) -> IResult<&str, Handful> {
 }
 
 fn handful_colors(s: &str) -> IResult<&str, Vec<Color>> {
+    //3 blue, 4 red
     separated_list0(tag(", "), handful_color)(s)
 }
 
 fn handful_color(s: &str) -> IResult<&str, Color> {
+    //3 blue
     let r = map(terminated(u32, tag(" red")), |count| Color::Red(count));
     let g = map(terminated(u32, tag(" green")), |count| Color::Green(count));
     let b = map(terminated(u32, tag(" blue")), |count| Color::Blue(count));
