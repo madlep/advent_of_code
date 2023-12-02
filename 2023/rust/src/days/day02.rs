@@ -101,10 +101,6 @@ struct HandfulBuilder {
     b: Option<ColorCount>,
 }
 
-#[derive(thiserror::Error, Debug, PartialEq)]
-#[error("`setting {0:?} count more than once`")]
-struct DuplicateColorError(Color);
-
 impl HandfulBuilder {
     fn color(self, col: Color) -> Result<Self, DuplicateColorError> {
         match col {
@@ -133,10 +129,6 @@ impl HandfulBuilder {
         )
     }
 }
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-#[error("error parsing: `{0}`")]
-struct ParseError(String);
 
 fn parse(data: &str) -> Result<Vec<Game>, Box<dyn std::error::Error>> {
     //Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
@@ -190,6 +182,14 @@ fn handful_color(s: &str) -> IResult<&str, Color> {
 
     alt((r, g, b))(s)
 }
+
+#[derive(thiserror::Error, Debug, PartialEq)]
+#[error("`setting {0:?} count more than once`")]
+struct DuplicateColorError(Color);
+
+#[derive(thiserror::Error, Debug, PartialEq)]
+#[error("error parsing: `{0}`")]
+struct ParseError(String);
 
 #[cfg(test)]
 mod tests {
