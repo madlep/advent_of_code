@@ -51,7 +51,7 @@ impl Game {
     fn fewest_posibility(&self) -> Handful {
         self.handfuls
             .iter()
-            .fold(Handful::empty(), |acc, handful| acc.expand(handful))
+            .fold(Handful::default(), |acc, handful| acc.expand(handful))
     }
 }
 
@@ -64,7 +64,7 @@ enum Color {
     Blue(ColorCount),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Default)]
 struct Handful {
     r: ColorCount,
     g: ColorCount,
@@ -74,10 +74,6 @@ struct Handful {
 impl Handful {
     fn new(r: ColorCount, g: ColorCount, b: ColorCount) -> Self {
         Handful { r, g, b }
-    }
-
-    fn empty() -> Self {
-        Self::new(0, 0, 0)
     }
 
     fn possible(&self, posibility: &Handful) -> bool {
@@ -97,6 +93,7 @@ impl Handful {
     }
 }
 
+#[derive(Default)]
 struct HandfulBuilder {
     r: Option<ColorCount>,
     g: Option<ColorCount>,
@@ -108,14 +105,6 @@ struct HandfulBuilder {
 struct DuplicateColorError(Color);
 
 impl HandfulBuilder {
-    fn new() -> Self {
-        HandfulBuilder {
-            r: None,
-            g: None,
-            b: None,
-        }
-    }
-
     fn color(self, col: Color) -> Result<Self, DuplicateColorError> {
         match col {
             Color::Red(count) if self.r.is_none() => Ok(Self {
@@ -180,10 +169,10 @@ fn handful(s: &str) -> IResult<&str, Handful> {
     map_res(handful_colors, |colors| {
         colors
             .into_iter()
-            .fold(Ok(HandfulBuilder::new()), |acc, color| {
-                acc.and_then(|acc| acc.color(color))
+            .fold(Ok(HandfulBuilder::default()), |acc, color| {
+                acc.and_then(|builder| builder.color(color))
             })
-            .map(|b| b.build())
+            .map(|builder| builder.build())
     })(s)
 }
 
