@@ -140,7 +140,7 @@ impl HandfulBuilder {
         }
     }
 
-    fn to_handful(self) -> Handful {
+    fn build(self) -> Handful {
         Handful::new(
             self.r.map_or(0, |c| c.count()),
             self.g.map_or(0, |c| c.count()),
@@ -188,7 +188,7 @@ fn handful(s: &str) -> IResult<&str, Handful> {
             .fold(Ok(HandfulBuilder::new()), |acc, color| {
                 acc.and_then(|acc| acc.color(color))
             })
-            .map(|b| b.to_handful())
+            .map(|b| b.build())
     })(s)
 }
 
