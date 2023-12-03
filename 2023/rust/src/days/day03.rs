@@ -125,12 +125,12 @@ impl Symbol {
 
     fn surrounding(&self) -> Vec<Coord> {
         let mut result = Vec::new();
-        for x in [-1, 0, 1] {
-            for y in [-1, 0, 1] {
-                if x == 0 && y == 0 {
+        for dx in [-1, 0, 1] {
+            for dy in [-1, 0, 1] {
+                if dx == 0 && dy == 0 {
                     continue;
                 }
-                result.push(self.coord.translate(x, y));
+                result.push(self.coord.translate(dx, dy));
             }
         }
         result
@@ -149,37 +149,37 @@ impl Number {
         let c = &self.coord;
         let mut result = Vec::new();
         // row above + below
-        for translate_x in -1..=(self.width as isize) {
-            result.push(c.translate(translate_x, -1));
-            result.push(c.translate(translate_x, 1));
+        for dx in -1..=(self.width as i32) {
+            result.push(c.translate(dx, -1));
+            result.push(c.translate(dx, 1));
         }
         // left end
         result.push(c.translate(-1, 0));
         // right end
-        result.push(c.translate(self.width as isize, 0));
+        result.push(c.translate(self.width as i32, 0));
 
         result
     }
 
     fn coords(&self) -> Vec<Coord> {
         (0..(self.width as isize))
-            .map(|translate_x| self.coord.translate(translate_x, 0))
+            .map(|dx| self.coord.translate(dx as i32, 0))
             .collect()
     }
 }
 
 #[derive(Hash, Eq, PartialEq, Clone)]
 struct Coord {
-    x: isize,
-    y: isize,
+    x: i32,
+    y: i32,
 }
 
 impl Coord {
-    fn new(x: isize, y: isize) -> Self {
+    fn new(x: i32, y: i32) -> Self {
         Coord { x, y }
     }
 
-    fn translate(&self, x: isize, y: isize) -> Self {
+    fn translate(&self, x: i32, y: i32) -> Self {
         Self {
             x: self.x + x,
             y: self.y + y,
@@ -216,8 +216,8 @@ impl<T> SparseGrid<T> {
 }
 
 enum Token {
-    Number { n: u32, i: usize, width: u32 },
-    Symbol { sym: char, i: usize },
+    Number { n: u32, i: u32, width: u32 },
+    Symbol { sym: char, i: u32 },
     Empty,
 }
 
@@ -238,7 +238,7 @@ impl<'a> Iterator for Tokenizer<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if self.i < self.line.len() {
             let s = &self.line[self.i..];
-            let old_i = self.i;
+            let old_i = self.i as u32;
             if let Some((n, width)) = tokenize_number(s) {
                 self.i += width;
                 Some(Token::Number {
@@ -291,10 +291,10 @@ fn parse(s: &str) -> Schematic {
         .fold(Schematic::new(), |acc, (y, line)| {
             Tokenizer::new(line).fold(acc, |mut acc2, tok| match tok {
                 Token::Number { n, i, width } => {
-                    let x = i;
+                    let x = i as i32;
                     let schematic_number = Number {
                         num: n,
-                        coord: Coord::new(x as isize, y as isize),
+                        coord: Coord::new(x, y as i32),
                         width,
                     };
                     for c in schematic_number.coords() {
@@ -304,8 +304,8 @@ fn parse(s: &str) -> Schematic {
                     acc2
                 }
                 Token::Symbol { sym, i } => {
-                    let x = i;
-                    let coord = Coord::new(x as isize, y as isize);
+                    let x = i as i32;
+                    let coord = Coord::new(x, y as i32);
                     acc2.symbols.set(coord.clone(), Symbol { sym, coord });
                     acc2
                 }
