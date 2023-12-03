@@ -13,9 +13,9 @@ pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
 }
 
 struct Schematic {
-    numbers_list: Vec<SchematicNumber>,
-    numbers: SparseGrid<SchematicNumber>,
-    symbols: SparseGrid<SchematicSymbol>,
+    numbers_list: Vec<Number>,
+    numbers: SparseGrid<Number>,
+    symbols: SparseGrid<Symbol>,
 }
 
 impl Schematic {
@@ -27,14 +27,14 @@ impl Schematic {
         }
     }
 
-    fn part_numbers_iter(&self) -> PartNumberIter<impl Iterator<Item = &SchematicNumber>> {
-        PartNumberIter {
+    fn part_numbers_iter(&self) -> PartNumbersIter<impl Iterator<Item = &Number>> {
+        PartNumbersIter {
             numbers_iter: self.numbers_list.iter(),
             symbols: &self.symbols,
         }
     }
 
-    fn gears_iter(&self) -> GearsIter<impl Iterator<Item = &SchematicSymbol>> {
+    fn gears_iter(&self) -> GearsIter<impl Iterator<Item = &Symbol>> {
         GearsIter {
             symbols_iter: self.symbols.values(),
             numbers: &self.numbers,
@@ -44,14 +44,14 @@ impl Schematic {
 
 type PartNumber = u32;
 
-struct PartNumberIter<'a, I> {
+struct PartNumbersIter<'a, I> {
     numbers_iter: I,
-    symbols: &'a SparseGrid<SchematicSymbol>,
+    symbols: &'a SparseGrid<Symbol>,
 }
 
-impl<'a, I> Iterator for PartNumberIter<'a, I>
+impl<'a, I> Iterator for PartNumbersIter<'a, I>
 where
-    I: Iterator<Item = &'a SchematicNumber>,
+    I: Iterator<Item = &'a Number>,
 {
     type Item = PartNumber;
 
@@ -72,8 +72,8 @@ where
 type Ratio = u32;
 
 struct Gear<'a> {
-    n1: &'a SchematicNumber,
-    n2: &'a SchematicNumber,
+    n1: &'a Number,
+    n2: &'a Number,
 }
 
 impl<'a> Gear<'a> {
@@ -84,12 +84,12 @@ impl<'a> Gear<'a> {
 
 struct GearsIter<'a, I> {
     symbols_iter: I,
-    numbers: &'a SparseGrid<SchematicNumber>,
+    numbers: &'a SparseGrid<Number>,
 }
 
 impl<'a, I> Iterator for GearsIter<'a, I>
 where
-    I: Iterator<Item = &'a SchematicSymbol>,
+    I: Iterator<Item = &'a Symbol>,
 {
     type Item = Gear<'a>;
 
@@ -101,7 +101,7 @@ where
                     .surrounding()
                     .iter()
                     .filter_map(|coord| self.numbers.get(coord))
-                    .collect::<HashSet<&SchematicNumber>>();
+                    .collect::<HashSet<&Number>>();
 
                 if nums.len() == 2 {
                     let n1 = nums.iter().nth(0).unwrap();
@@ -113,12 +113,12 @@ where
     }
 }
 
-struct SchematicSymbol {
+struct Symbol {
     sym: char,
     coord: Coord,
 }
 
-impl SchematicSymbol {
+impl Symbol {
     fn is_gear(&self) -> bool {
         self.sym == '*'
     }
@@ -138,13 +138,13 @@ impl SchematicSymbol {
 }
 
 #[derive(PartialEq, Eq, Hash, Clone)]
-struct SchematicNumber {
+struct Number {
     num: u32,
     coord: Coord,
     width: u32,
 }
 
-impl SchematicNumber {
+impl Number {
     fn surrounding(&self) -> Vec<Coord> {
         let c = &self.coord;
         let mut result = Vec::new();
@@ -215,25 +215,25 @@ impl<T> SparseGrid<T> {
     }
 }
 
-enum SchematicToken {
+enum Token {
     Number { n: u32, i: usize, width: u32 },
     Symbol { sym: char, i: usize },
     Empty,
 }
 
-struct SchematicLineTokenizer<'a> {
+struct Tokenizer<'a> {
     line: &'a str,
     i: usize,
 }
 
-impl<'a> SchematicLineTokenizer<'a> {
+impl<'a> Tokenizer<'a> {
     fn new(line: &'a str) -> Self {
         Self { line, i: 0 }
     }
 }
 
-impl<'a> Iterator for SchematicLineTokenizer<'a> {
-    type Item = SchematicToken;
+impl<'a> Iterator for Tokenizer<'a> {
+    type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.i < self.line.len() {
@@ -241,17 +241,17 @@ impl<'a> Iterator for SchematicLineTokenizer<'a> {
             let old_i = self.i;
             if let Some((n, width)) = tokenize_number(s) {
                 self.i += width;
-                Some(SchematicToken::Number {
+                Some(Token::Number {
                     n,
                     i: old_i,
                     width: (width as u32),
                 })
             } else if let Some(sym) = tokenize_symbol(s) {
                 self.i += 1;
-                Some(SchematicToken::Symbol { sym, i: old_i })
+                Some(Token::Symbol { sym, i: old_i })
             } else {
                 self.i += 1;
-                Some(SchematicToken::Empty)
+                Some(Token::Empty)
             }
         } else {
             None
@@ -289,10 +289,10 @@ fn parse(s: &str) -> Schematic {
     s.lines()
         .enumerate()
         .fold(Schematic::new(), |acc, (y, line)| {
-            SchematicLineTokenizer::new(&line).fold(acc, |mut acc2, tok| match tok {
-                SchematicToken::Number { n, i, width } => {
+            Tokenizer::new(&line).fold(acc, |mut acc2, tok| match tok {
+                Token::Number { n, i, width } => {
                     let x = i;
-                    let schematic_number = SchematicNumber {
+                    let schematic_number = Number {
                         num: n,
                         coord: Coord::new(x as isize, y as isize),
                         width,
@@ -303,14 +303,13 @@ fn parse(s: &str) -> Schematic {
                     acc2.numbers_list.push(schematic_number);
                     acc2
                 }
-                SchematicToken::Symbol { sym, i } => {
+                Token::Symbol { sym, i } => {
                     let x = i;
                     let coord = Coord::new(x as isize, y as isize);
-                    acc2.symbols
-                        .set(coord.clone(), SchematicSymbol { sym, coord });
+                    acc2.symbols.set(coord.clone(), Symbol { sym, coord });
                     acc2
                 }
-                SchematicToken::Empty => acc2,
+                Token::Empty => acc2,
             })
         })
 }
