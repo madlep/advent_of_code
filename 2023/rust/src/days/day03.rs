@@ -61,7 +61,7 @@ where
             if schematic_number
                 .surrounding()
                 .iter()
-                .any(|coord| self.symbols.is_present(&coord))
+                .any(|coord| self.symbols.is_present(coord))
             {
                 return Some(schematic_number.num);
             }
@@ -163,7 +163,7 @@ impl Number {
 
     fn coords(&self) -> Vec<Coord> {
         (0..(self.width as isize))
-            .map(|translate_x| self.coord.translate(translate_x as isize, 0))
+            .map(|translate_x| self.coord.translate(translate_x, 0))
             .collect()
     }
 }
@@ -279,7 +279,7 @@ fn tokenize_symbol(s: &str) -> Option<char> {
         ]
         .contains(&c)
     }) {
-        Some(s.chars().nth(0).unwrap())
+        Some(s.chars().next().unwrap())
     } else {
         None
     }
@@ -289,7 +289,7 @@ fn parse(s: &str) -> Schematic {
     s.lines()
         .enumerate()
         .fold(Schematic::new(), |acc, (y, line)| {
-            Tokenizer::new(&line).fold(acc, |mut acc2, tok| match tok {
+            Tokenizer::new(line).fold(acc, |mut acc2, tok| match tok {
                 Token::Number { n, i, width } => {
                     let x = i;
                     let schematic_number = Number {

@@ -162,8 +162,8 @@ fn handful(s: &str) -> IResult<&str, Handful> {
     map_res(handful_colors, |colors| {
         colors
             .into_iter()
-            .fold(Ok(HandfulBuilder::default()), |acc, color| {
-                acc.and_then(|builder| builder.color(color))
+            .try_fold(HandfulBuilder::default(), |builder, color| {
+                builder.color(color)
             })
             .map(|builder| builder.build())
     })(s)
@@ -176,9 +176,9 @@ fn handful_colors(s: &str) -> IResult<&str, Vec<Color>> {
 
 fn handful_color(s: &str) -> IResult<&str, Color> {
     //3 blue
-    let r = map(terminated(u32, tag(" red")), |count| Red(count));
-    let g = map(terminated(u32, tag(" green")), |count| Green(count));
-    let b = map(terminated(u32, tag(" blue")), |count| Blue(count));
+    let r = map(terminated(u32, tag(" red")), Red);
+    let g = map(terminated(u32, tag(" green")), Green);
+    let b = map(terminated(u32, tag(" blue")), Blue);
 
     alt((r, g, b))(s)
 }
