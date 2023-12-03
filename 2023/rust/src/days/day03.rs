@@ -113,25 +113,6 @@ where
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Clone)]
-struct Coord {
-    x: isize,
-    y: isize,
-}
-
-impl Coord {
-    fn new(x: isize, y: isize) -> Self {
-        Coord { x, y }
-    }
-
-    fn translate(&self, x: isize, y: isize) -> Self {
-        Self {
-            x: self.x + x,
-            y: self.y + y,
-        }
-    }
-}
-
 struct SchematicSymbol {
     sym: char,
     coord: Coord,
@@ -184,6 +165,25 @@ impl SchematicNumber {
         (0..(self.width as isize))
             .map(|translate_x| self.coord.translate(translate_x as isize, 0))
             .collect()
+    }
+}
+
+#[derive(Hash, Eq, PartialEq, Clone)]
+struct Coord {
+    x: isize,
+    y: isize,
+}
+
+impl Coord {
+    fn new(x: isize, y: isize) -> Self {
+        Coord { x, y }
+    }
+
+    fn translate(&self, x: isize, y: isize) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
     }
 }
 
