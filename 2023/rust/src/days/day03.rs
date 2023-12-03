@@ -18,7 +18,7 @@ struct Schematic {
     symbols: SparseGrid<SchematicSymbol>,
 }
 
-impl<'a> Schematic {
+impl Schematic {
     fn new() -> Self {
         Self {
             numbers_list: Vec::new(),
@@ -27,16 +27,16 @@ impl<'a> Schematic {
         }
     }
 
-    fn part_numbers_iter(&'a self) -> PartNumberIter<'a> {
+    fn part_numbers_iter(&self) -> PartNumberIter<impl Iterator<Item = &SchematicNumber>> {
         PartNumberIter {
             numbers_iter: self.numbers_list.iter(),
             symbols: &self.symbols,
         }
     }
 
-    fn gears_iter(&'a self) -> GearsIter<'a> {
+    fn gears_iter(&self) -> GearsIter<impl Iterator<Item = &SchematicSymbol>> {
         GearsIter {
-            symbols_iter: self.symbols.cells.values(),
+            symbols_iter: self.symbols.values(),
             numbers: &self.numbers,
         }
     }
@@ -44,12 +44,15 @@ impl<'a> Schematic {
 
 type PartNumber = u32;
 
-struct PartNumberIter<'a> {
-    numbers_iter: core::slice::Iter<'a, SchematicNumber>,
+struct PartNumberIter<'a, I> {
+    numbers_iter: I,
     symbols: &'a SparseGrid<SchematicSymbol>,
 }
 
-impl<'a> Iterator for PartNumberIter<'a> {
+impl<'a, I> Iterator for PartNumberIter<'a, I>
+where
+    I: Iterator<Item = &'a SchematicNumber>,
+{
     type Item = PartNumber;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -79,13 +82,15 @@ impl<'a> Gear<'a> {
     }
 }
 
-struct GearsIter<'a> {
-    symbols_iter: std::collections::hash_map::Values<'a, Coord, SchematicSymbol>,
-
+struct GearsIter<'a, I> {
+    symbols_iter: I,
     numbers: &'a SparseGrid<SchematicNumber>,
 }
 
-impl<'a> Iterator for GearsIter<'a> {
+impl<'a, I> Iterator for GearsIter<'a, I>
+where
+    I: Iterator<Item = &'a SchematicSymbol>,
+{
     type Item = Gear<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -203,6 +208,10 @@ impl<T> SparseGrid<T> {
 
     fn set(&mut self, coord: Coord, value: T) {
         self.cells.insert(coord, value);
+    }
+
+    fn values(&self) -> impl Iterator<Item = &T> {
+        self.cells.values()
     }
 }
 
