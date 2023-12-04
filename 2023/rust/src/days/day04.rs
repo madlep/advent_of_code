@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use nom::{
     bytes::complete::tag,
@@ -18,7 +18,7 @@ pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
     let cards = parse(data)?;
     Ok(cards
         .iter()
-        .map(|c| c.total_for_card(&mut HashMap::new(), &cards))
+        .map(|c| c.total_cards(&mut HashMap::new(), &cards))
         .sum::<u32>()
         .to_string())
 }
@@ -44,49 +44,21 @@ impl Card {
     }
 
     fn matching_ids_count(&self) -> u32 {
-        let mut winning_sorted = self.winning.clone();
-        winning_sorted.sort();
-        let mut ours_sorted = self.ours.clone();
-        ours_sorted.sort();
-        let mut winning_it = winning_sorted.iter();
-        let mut ours_it = ours_sorted.iter();
-
-        let mut result = 0;
-        let mut next_w = winning_it.next();
-        let mut next_o = ours_it.next();
-        loop {
-            if let (Some(w), Some(o)) = (next_w, next_o) {
-                if w > o {
-                    next_o = ours_it.next();
-                } else if w < o {
-                    next_w = winning_it.next();
-                } else {
-                    result += 1;
-                    next_w = winning_it.next();
-                    next_o = ours_it.next();
-                }
-            } else {
-                break;
-            }
-        }
-        result
+        let winning: HashSet<&u32> = HashSet::from_iter(&self.winning);
+        let ours: HashSet<&u32> = HashSet::from_iter(&self.ours);
+        winning.intersection(&ours).count() as u32
     }
 
-    fn total_for_card(&self, memo: &mut HashMap<CardId, u32>, cards: &Vec<Card>) -> u32 {
+    fn total_cards(&self, memo: &mut HashMap<CardId, u32>, cards: &Vec<Card>) -> u32 {
         if let Some(total) = memo.get(&self.id) {
             *total
         } else {
-            // add 1 for this card
-            let card_total = 1
-                + (1..=self.matching_ids_count())
-                    .map(|offset_id| {
-                        let other_card_id = self.id + offset_id;
-                        let other_card = &cards[(other_card_id - 1) as usize];
-                        other_card.total_for_card(memo, cards)
-                    })
-                    .sum::<u32>();
-            memo.insert(self.id, card_total);
-            card_total
+            let cards_total = (1..=self.matching_ids_count())
+                .map(|offset| cards[(self.id + offset - 1) as usize].total_cards(memo, cards))
+                .sum::<u32>()
+                + 1; // 1 for this card
+            memo.insert(self.id, cards_total);
+            cards_total
         }
     }
 }
