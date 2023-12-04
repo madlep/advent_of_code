@@ -3,9 +3,9 @@ use std::collections::{HashMap, HashSet};
 use nom::{
     bytes::complete::tag,
     character::complete::{self, newline, space1},
-    combinator::map,
+    combinator::{eof, map},
     multi::separated_list0,
-    sequence::{delimited, pair, separated_pair, tuple},
+    sequence::{delimited, pair, separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -69,7 +69,7 @@ fn parse(s: &str) -> Result<Vec<Card>, ParseError> {
 }
 
 fn cards(s: &str) -> IResult<&str, Vec<Card>> {
-    separated_list0(newline, card)(s)
+    terminated(separated_list0(newline, card), eof)(s)
 }
 
 // Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
