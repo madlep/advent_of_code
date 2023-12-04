@@ -16,20 +16,16 @@ pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
 
 pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
     let cards = parse(data)?;
-
-    let mut memo = HashMap::new();
-
-    let total = cards
+    Ok(cards
         .iter()
-        .map(|c| c.total_for_card(&mut memo, &cards))
-        .sum::<u32>();
-    Ok(total.to_string())
+        .map(|c| c.total_for_card(&mut HashMap::new(), &cards))
+        .sum::<u32>()
+        .to_string())
 }
 
 type Point = u32;
 type CardId = u32;
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 struct Card {
     id: CardId,
@@ -40,7 +36,7 @@ struct Card {
 impl Card {
     fn points(&self) -> Point {
         let result = self.matching_ids_count();
-        if result != 0 {
+        if result > 0 {
             2_u32.pow(result - 1)
         } else {
             0
@@ -52,7 +48,6 @@ impl Card {
         winning_sorted.sort();
         let mut ours_sorted = self.ours.clone();
         ours_sorted.sort();
-
         let mut winning_it = winning_sorted.iter();
         let mut ours_it = ours_sorted.iter();
 
