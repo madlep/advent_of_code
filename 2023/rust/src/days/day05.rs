@@ -1,6 +1,8 @@
 use std::{
     cmp::{self, Ordering},
     collections::HashMap,
+    iter::Peekable,
+    ops::Range,
 };
 
 use nom::{
@@ -22,8 +24,20 @@ pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
         .to_string())
 }
 
-pub fn part2(_data: &str) -> Result<String, Box<dyn std::error::Error>> {
-    todo!()
+pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let (seeds, almanac) = parse(data)?;
+
+    let seed_ranges = seeds
+        .chunks(2)
+        .map(|start_end| start_end[0]..start_end[0] + start_end[1])
+        .collect::<Vec<Range<Id>>>();
+
+    Ok(almanac
+        .location_ranges_for_seed_range(seed_ranges)
+        .min_by_key(|r| r.start)
+        .unwrap()
+        .start
+        .to_string())
 }
 
 type Id = u64;
@@ -62,7 +76,7 @@ struct Almanac {
     category_mappings: HashMap<(Category, Category), CategoryMapping>,
 }
 
-impl Almanac {
+impl<'a> Almanac {
     fn new() -> Self {
         Almanac {
             category_mappings: HashMap::new(),
@@ -71,6 +85,15 @@ impl Almanac {
 
     fn location_for_seed(&self, seed: Id) -> Id {
         Category::lookup_iter().fold(seed, |id, lookup| self.category_mappings[&lookup].map(id))
+    }
+
+    fn location_ranges_for_seed_range(
+        &self,
+        seed_ranges: Vec<Range<Id>>,
+    ) -> Box<dyn Iterator<Item = Range<Id>> + '_> {
+        Category::lookup_iter().fold(Box::new(seed_ranges.into_iter()), |ranges, lookup| {
+            Box::new(ranges.flat_map(move |range| self.category_mappings[&lookup].map_range(range)))
+        })
     }
 
     fn add_category_mapping(&mut self, cm: CategoryMapping) {
@@ -86,7 +109,7 @@ struct CategoryMapping {
     mappings: Vec<Mapping>,
 }
 
-impl CategoryMapping {
+impl<'a> CategoryMapping {
     fn new(source: Category, destination: Category, mappings: Vec<Mapping>) -> Self {
         let mut mappings = mappings.clone();
         mappings.sort();
@@ -103,20 +126,109 @@ impl CategoryMapping {
             Err(_) => from,
         }
     }
+
+    fn map_range(&'a self, from: Range<Id>) -> impl Iterator<Item = Range<Id>> + 'a {
+        MapRangeIterator::new(from, self.mappings.iter().cloned())
+    }
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
+struct MapRangeIterator<I>
+where
+    I: Iterator<Item = Mapping>,
+{
+    remaining: Option<Range<Id>>,
+    mappings_iter: Peekable<I>,
+}
+
+impl<I> MapRangeIterator<I>
+where
+    I: Iterator<Item = Mapping>,
+{
+    fn new(from: Range<Id>, mappings_iter: I) -> Self {
+        MapRangeIterator {
+            remaining: Some(from),
+            mappings_iter: mappings_iter.peekable(),
+        }
+    }
+}
+
+impl<I> Iterator for MapRangeIterator<I>
+where
+    I: Iterator<Item = Mapping>,
+{
+    type Item = Range<Id>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.remaining.is_none() {
+            return None;
+        }
+
+        let r = self.remaining.as_ref().map(|r| r.clone()).unwrap();
+        let rstart = r.start;
+        let rend = r.end;
+
+        while let Some(peeked) = self.mappings_iter.peek() {
+            if peeked.range.end <= rstart {
+                self.mappings_iter.next();
+            } else {
+                break;
+            }
+        }
+
+        let peeked = self.mappings_iter.peek();
+        if peeked.is_none() {
+            // no mappings left, return range unchanged and terminate
+            return self.remaining.take();
+        }
+
+        let m = peeked.map(|m| m.clone()).unwrap();
+        let mstart = m.range.start;
+        let mend = m.range.end;
+
+        if rend <= mstart {
+            // we're before the first mapping, return range unchanged and terminate
+            self.remaining.take()
+        } else if rstart < mstart && rend > mstart {
+            // start of range isn't in a mapping, split the range, return the first
+            // part unmapped, then set up remaining as other part to be handled
+            // next time
+            self.remaining.replace(mstart..rend);
+            Some(rstart..mstart)
+        } else if rstart >= mstart && rend <= mend {
+            // range is totally contained by mapping, map it and return it and
+            // terminate
+            self.remaining = None;
+            Some(m.map_range(rstart..rend))
+        } else if rstart >= mstart && rend > mend {
+            // start of range is in mapping, last part isn't. split the range, map
+            // the first part and return it, then set second part to be remaining,
+            // and bump the mapping iterator
+            self.mappings_iter.next();
+            self.remaining = Some(mend..rend);
+            Some(m.map_range(rstart..mend))
+        } else {
+            panic!("rem:{:?} peeked:{:?}", r, m.range);
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
 struct Mapping {
-    source: Id,
-    destination: Id,
-    range: u64,
+    range: Range<Id>,
+    offset: i64,
 }
 
 impl Mapping {
+    fn new(source: u64, destination: u64, range_size: u64) -> Self {
+        Self {
+            range: source..source + range_size,
+            offset: (destination as i64) - (source as i64),
+        }
+    }
     fn can_handle(&self, id: Id) -> Ordering {
-        if id < self.source {
+        if id < self.range.start {
             Ordering::Greater
-        } else if id >= self.source && id < self.source + self.range {
+        } else if self.range.contains(&id) {
             Ordering::Equal
         } else {
             Ordering::Less
@@ -124,7 +236,23 @@ impl Mapping {
     }
 
     fn map(&self, id: Id) -> Id {
-        self.destination + id - self.source
+        (id as i64 + self.offset) as Id
+    }
+
+    fn map_range(&self, id_range: Range<Id>) -> Range<Id> {
+        self.map(id_range.start)..self.map(id_range.end)
+    }
+}
+
+impl PartialOrd for Mapping {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Mapping {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.range.start.cmp(&other.range.start)
     }
 }
 
@@ -200,11 +328,7 @@ fn mapping(s: &str) -> IResult<&str, Mapping> {
             terminated(nom_u64, space1),
             terminated(nom_u64, space0),
         )),
-        |(destination, source, range)| Mapping {
-            source,
-            destination,
-            range,
-        },
+        |(destination, source, range)| Mapping::new(source, destination, range),
     )(s)
 }
 
@@ -247,18 +371,7 @@ seed-to-soil map:
                 CategoryMapping {
                     source: Seed,
                     destination: Soil,
-                    mappings: vec![
-                        Mapping {
-                            source: 50,
-                            destination: 52,
-                            range: 48
-                        },
-                        Mapping {
-                            source: 98,
-                            destination: 50,
-                            range: 2
-                        },
-                    ]
+                    mappings: vec![Mapping::new(50, 52, 48), Mapping::new(98, 50, 2),]
                 }
             ))
         )
@@ -269,18 +382,7 @@ seed-to-soil map:
         let cm = CategoryMapping {
             source: Seed,
             destination: Soil,
-            mappings: vec![
-                Mapping {
-                    source: 50,
-                    destination: 52,
-                    range: 48,
-                },
-                Mapping {
-                    source: 98,
-                    destination: 50,
-                    range: 2,
-                },
-            ],
+            mappings: vec![Mapping::new(50, 52, 48), Mapping::new(98, 50, 2)],
         };
 
         assert_eq!(cm.map(79), 81);
