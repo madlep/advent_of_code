@@ -167,6 +167,7 @@ where
         let rstart = r.start;
         let rend = r.end;
 
+        // skip over mappings completely before range
         while let Some(peeked) = self.mappings_iter.peek() {
             if peeked.range.end <= rstart {
                 self.mappings_iter.next();
@@ -187,26 +188,26 @@ where
 
         if rend <= mstart {
             // we're before the first mapping, return range unchanged and terminate
-            self.remaining.take()
+            self.remaining = None;
+            Some(r)
         } else if rstart < mstart && rend > mstart {
-            // start of range isn't in a mapping, split the range, return the first
-            // part unmapped, then set up remaining as other part to be handled
-            // next time
-            self.remaining.replace(mstart..rend);
+            // start of range isn't in a mapping, split the range, return the first part unmapped,
+            // then set up remaining as other part to be handled next time
+            self.remaining = Some(mstart..rend);
             Some(rstart..mstart)
         } else if rstart >= mstart && rend <= mend {
-            // range is totally contained by mapping, map it and return it and
-            // terminate
+            // range is totally contained by mapping, map it and return it and terminate
             self.remaining = None;
-            Some(m.map_range(rstart..rend))
+            Some(m.map_range(r))
         } else if rstart >= mstart && rend > mend {
-            // start of range is in mapping, last part isn't. split the range, map
-            // the first part and return it, then set second part to be remaining,
-            // and bump the mapping iterator
+            // start of range runs from inside mapping, to past the end of the mapping. Bump the
+            // mapping, return the portion inside the mapping, and set remaining to what is left
+            // after the end of the mapping
             self.mappings_iter.next();
             self.remaining = Some(mend..rend);
             Some(m.map_range(rstart..mend))
         } else {
+            // shouldn't get here
             panic!("rem:{:?} peeked:{:?}", r, m.range);
         }
     }
