@@ -6,6 +6,7 @@ pub mod day03;
 pub mod day04;
 pub mod day05;
 pub mod day06;
+pub mod day07;
 
 pub type Day = u8;
 pub type Part = u8;
@@ -24,6 +25,8 @@ pub fn run_day_part(day: Day, part: Part, data: &str) -> Result<String, Box<dyn 
         (5, 2) => day05::part2(data),
         (6, 1) => day06::part1(data),
         (6, 2) => day06::part2(data),
+        (7, 1) => day07::part1(data),
+        (7, 2) => day07::part2(data),
         (day_m, part_m) => panic!("Day {}, part {} is not implemented", day_m, part_m),
     }
 }
