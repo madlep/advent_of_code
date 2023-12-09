@@ -1,3 +1,5 @@
+use std::{fmt::Debug, str::FromStr};
+
 use nom::{
     bytes::complete::tag,
     character::complete::{multispace1, space1, u64 as nom_u64},
@@ -39,8 +41,6 @@ impl Race {
 type Distance = u64;
 type Time = u64;
 
-//Time:      7  15   30
-//Distance:  9  40  200
 fn parse(s: &str) -> Result<Vec<Race>, ParseError> {
     let (_rest, (times, distances)) = races(s).map_err(|e| ParseError(e.to_string()))?;
     Ok(distances
@@ -56,26 +56,23 @@ fn parse(s: &str) -> Result<Vec<Race>, ParseError> {
 fn parse2(s: &str) -> Result<Race, ParseError> {
     let (_rest, (times, distances)) = races(s).map_err(|e| ParseError(e.to_string()))?;
 
-    let distance_record = distances
-        .iter()
-        .map(|d| d.to_string())
-        .collect::<Vec<String>>()
-        .join("")
-        .parse::<u64>()
-        .unwrap();
-
-    let time = times
-        .iter()
-        .map(|d| d.to_string())
-        .collect::<Vec<String>>()
-        .join("")
-        .parse::<u64>()
-        .unwrap();
-
     Ok(Race {
-        distance_record,
-        time,
+        distance_record: concat(distances),
+        time: concat(times),
     })
+}
+
+fn concat<T>(vs: Vec<T>) -> T
+where
+    T: ToString + FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    vs.iter()
+        .map(|d| d.to_string())
+        .collect::<Vec<String>>()
+        .join("")
+        .parse::<T>()
+        .unwrap()
 }
 
 fn races(s: &str) -> IResult<&str, (Vec<Time>, Vec<Distance>)> {
