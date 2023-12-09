@@ -1,3 +1,5 @@
+use crate::ParseError;
+
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -186,10 +188,6 @@ fn handful_color(s: &str) -> IResult<&str, Color> {
 #[derive(thiserror::Error, Debug, PartialEq)]
 #[error("`setting {0:?} count more than once`")]
 struct DuplicateColorError(Color);
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-#[error("error parsing: `{0}`")]
-struct ParseError(String);
 
 #[cfg(test)]
 mod tests {

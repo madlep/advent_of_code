@@ -1,3 +1,5 @@
+use crate::ParseError;
+
 use std::{
     cmp::{self, Ordering},
     collections::HashMap,
@@ -332,10 +334,6 @@ fn mapping(s: &str) -> IResult<&str, Mapping> {
         |(destination, source, range)| Mapping::new(source, destination, range),
     )(s)
 }
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-#[error("error parsing: `{0}`")]
-struct ParseError(String);
 
 #[cfg(test)]
 mod tests {

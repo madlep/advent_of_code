@@ -18,3 +18,7 @@ fn load_data(file_path: PathBuf) -> Result<String, std::io::Error> {
     file.read_to_string(&mut data)?;
     Ok(data)
 }
+
+#[derive(thiserror::Error, Debug, PartialEq)]
+#[error("error parsing: `{0}`")]
+struct ParseError(String);

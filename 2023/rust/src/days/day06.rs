@@ -1,3 +1,4 @@
+use crate::ParseError;
 use std::{fmt::Debug, str::FromStr};
 
 use nom::{
@@ -92,7 +93,3 @@ fn distances(s: &str) -> IResult<&str, Vec<Distance>> {
         separated_list0(space1, nom_u64),
     )(s)
 }
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-#[error("error parsing: `{0}`")]
-struct ParseError(String);

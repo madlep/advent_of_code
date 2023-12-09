@@ -1,3 +1,5 @@
+use crate::ParseError;
+
 use std::collections::{HashMap, HashSet};
 
 use nom::{
@@ -96,10 +98,6 @@ fn numbers(s: &str) -> IResult<&str, (Vec<Point>, Vec<Point>)> {
 fn number_list(s: &str) -> IResult<&str, Vec<Point>> {
     separated_list0(space1, complete::u32)(s)
 }
-
-#[derive(thiserror::Error, Debug, PartialEq)]
-#[error("error parsing: `{0}`")]
-struct ParseError(String);
 
 #[cfg(test)]
 mod tests {
