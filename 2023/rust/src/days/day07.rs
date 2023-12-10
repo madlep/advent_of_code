@@ -12,23 +12,30 @@ use std::{cmp::Ordering, cmp::Ordering::*, collections::HashMap};
 use crate::ParseError;
 
 pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let mut bids = parse(data)?;
+    let mut bids = parse(false, data)?;
     bids.sort();
 
-    Ok(bids
-        .iter()
+    Ok(run(bids))
+}
+
+pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let mut bids = parse(true, data)?;
+    bids.sort();
+
+    Ok(run(bids))
+}
+
+fn run(bids: Vec<Bid>) -> String {
+    bids.iter()
         .enumerate()
         .map(|(rank, bid)| bid.amount * (rank as u32 + 1))
         .sum::<u32>()
-        .to_string())
-}
-
-pub fn part2(_data: &str) -> Result<String, Box<dyn std::error::Error>> {
-    todo!()
+        .to_string()
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash, Debug)]
 enum Card {
+    Joker,
     Two,
     Three,
     Four,
@@ -58,19 +65,28 @@ impl Hand {
     }
 
     fn hand_type(&self) -> HandType {
-        let groups = self
-            .cards
-            .iter()
-            .fold(HashMap::new(), |mut acc: HashMap<Card, u32>, card| {
-                acc.entry(*card)
-                    .and_modify(|count| *count += 1)
-                    .or_insert(1);
-                acc
-            });
+        let mut groups =
+            self.cards
+                .iter()
+                .fold(HashMap::new(), |mut acc: HashMap<Card, u32>, card| {
+                    acc.entry(*card)
+                        .and_modify(|count| *count += 1)
+                        .or_insert(1);
+                    acc
+                });
+
+        let jokers = groups.remove(&Joker).unwrap_or(0);
 
         let mut groups = groups.into_values().collect::<Vec<_>>();
         groups.sort();
         groups.reverse();
+
+        if groups.is_empty() {
+            // handle 5 jokers - we'll have no groups otherwise
+            groups.push(jokers);
+        } else {
+            groups[0] += jokers;
+        }
 
         if groups[0] == 5 {
             FiveOfAKind
@@ -133,49 +149,55 @@ struct Bid {
 
 type Amount = u32;
 
-fn parse(s: &str) -> Result<Vec<Bid>, ParseError> {
-    let (_rest, bids) = bids(s).map_err(|e| ParseError(e.to_string()))?;
+fn parse(jokers: bool, s: &str) -> Result<Vec<Bid>, ParseError> {
+    let (_rest, bids) = bids(jokers)(s).map_err(|e| ParseError(e.to_string()))?;
 
     Ok(bids)
 }
 
-fn bids(s: &str) -> IResult<&str, Vec<Bid>> {
-    separated_list0(newline, bid)(s)
+fn bids(jokers: bool) -> impl FnMut(&str) -> IResult<&str, Vec<Bid>> {
+    move |s| separated_list0(newline, bid(jokers))(s)
 }
 
-fn bid(s: &str) -> IResult<&str, Bid> {
-    map(separated_pair(hand, space1, amount), |(hand, amount)| Bid {
-        hand,
-        amount,
-    })(s)
+fn bid(jokers: bool) -> impl FnMut(&str) -> IResult<&str, Bid> {
+    move |s| {
+        map(
+            separated_pair(hand(jokers), space1, amount),
+            |(hand, amount)| Bid { hand, amount },
+        )(s)
+    }
 }
 
-fn hand(s: &str) -> IResult<&str, Hand> {
-    map(cards, |cards| {
-        Hand::new(cards[0], cards[1], cards[2], cards[3], cards[4])
-    })(s)
+fn hand(jokers: bool) -> impl FnMut(&str) -> IResult<&str, Hand> {
+    move |s| {
+        map(cards(jokers), |cards| {
+            Hand::new(cards[0], cards[1], cards[2], cards[3], cards[4])
+        })(s)
+    }
 }
 
-fn cards(s: &str) -> IResult<&str, Vec<Card>> {
-    verify(many0(card), |cards: &Vec<Card>| cards.len() == 5)(s)
+fn cards(jokers: bool) -> impl FnMut(&str) -> IResult<&str, Vec<Card>> {
+    move |s| verify(many0(card(jokers)), |cards: &Vec<Card>| cards.len() == 5)(s)
 }
 
-fn card(s: &str) -> IResult<&str, Card> {
-    alt((
-        value(Ace, tag("A")),
-        value(King, tag("K")),
-        value(Queen, tag("Q")),
-        value(Jack, tag("J")),
-        value(Ten, tag("T")),
-        value(Nine, tag("9")),
-        value(Eight, tag("8")),
-        value(Seven, tag("7")),
-        value(Six, tag("6")),
-        value(Five, tag("5")),
-        value(Four, tag("4")),
-        value(Three, tag("3")),
-        value(Two, tag("2")),
-    ))(s)
+fn card(jokers: bool) -> impl FnMut(&str) -> IResult<&str, Card> {
+    move |s| {
+        alt((
+            value(Ace, tag("A")),
+            value(King, tag("K")),
+            value(Queen, tag("Q")),
+            value(if jokers { Joker } else { Jack }, tag("J")),
+            value(Ten, tag("T")),
+            value(Nine, tag("9")),
+            value(Eight, tag("8")),
+            value(Seven, tag("7")),
+            value(Six, tag("6")),
+            value(Five, tag("5")),
+            value(Four, tag("4")),
+            value(Three, tag("3")),
+            value(Two, tag("2")),
+        ))(s)
+    }
 }
 
 fn amount(s: &str) -> IResult<&str, Amount> {
@@ -189,7 +211,7 @@ mod tests {
     #[test]
     fn parse_cards() {
         assert_eq!(
-            cards("32T3K").unwrap(),
+            cards(false)("32T3K").unwrap(),
             ("", vec![Three, Two, Ten, Three, King])
         );
     }
@@ -197,7 +219,7 @@ mod tests {
     #[test]
     fn parse_bid() {
         assert_eq!(
-            bid("32T3K 765").unwrap(),
+            bid(false)("32T3K 765").unwrap(),
             (
                 "",
                 Bid {
