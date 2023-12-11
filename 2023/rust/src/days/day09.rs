@@ -11,13 +11,18 @@ pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
     let sequences = parse(data)?;
     Ok(sequences
         .iter()
-        .map(|seq| seq.prediction())
+        .map(|seq| seq.extrapolate_next())
         .sum::<i32>()
         .to_string())
 }
 
-pub fn part2(_data: &str) -> Result<String, Box<dyn std::error::Error>> {
-    todo!()
+pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let sequences = parse(data)?;
+    Ok(sequences
+        .iter()
+        .map(|seq| seq.extrapolate_prev())
+        .sum::<i32>()
+        .to_string())
 }
 
 type Reading = i32;
@@ -32,12 +37,21 @@ impl Sequence {
         Self { readings }
     }
 
-    fn prediction(&self) -> Reading {
+    fn extrapolate_next(&self) -> Reading {
         let ds = self.diffs();
         if ds.zeroes() {
             *self.readings.last().unwrap()
         } else {
-            self.readings.last().unwrap() + ds.prediction()
+            self.readings.last().unwrap() + ds.extrapolate_next()
+        }
+    }
+
+    fn extrapolate_prev(&self) -> Reading {
+        let ds = self.diffs();
+        if ds.zeroes() {
+            *self.readings.first().unwrap()
+        } else {
+            self.readings.first().unwrap() - ds.extrapolate_prev()
         }
     }
 

@@ -15,8 +15,5 @@ fn part1_example_data() {
 
 #[test]
 fn part2_example_data() {
-    assert_eq!(
-        part2(DATA).map_err(|e| e.to_string()),
-        Ok("part2 todo".to_string())
-    );
+    assert_eq!(part2(DATA).map_err(|e| e.to_string()), Ok("2".to_string()));
 }
