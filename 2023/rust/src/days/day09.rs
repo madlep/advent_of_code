@@ -38,20 +38,18 @@ impl Sequence {
     }
 
     fn extrapolate_next(&self) -> Reading {
-        let ds = self.diffs();
-        if ds.zeroes() {
-            *self.readings.last().unwrap()
+        if self.zeroes() {
+            0
         } else {
-            self.readings.last().unwrap() + ds.extrapolate_next()
+            *self.readings.last().unwrap() + self.diffs().extrapolate_next()
         }
     }
 
     fn extrapolate_prev(&self) -> Reading {
-        let ds = self.diffs();
-        if ds.zeroes() {
-            *self.readings.first().unwrap()
+        if self.zeroes() {
+            0
         } else {
-            self.readings.first().unwrap() - ds.extrapolate_prev()
+            *self.readings.first().unwrap() - self.diffs().extrapolate_prev()
         }
     }
 
