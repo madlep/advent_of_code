@@ -24,13 +24,31 @@ pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
     let (instructions, nodes) = parse(data)?;
 
     Ok(nodes
-        .ghost_iter("A", |node| node.id.ends_with("Z"), &instructions)
-        .enumerate()
-        .inspect(|nodes| {
-            dbg!(&nodes);
+        .node_lookup
+        .keys()
+        .filter(|node_id| node_id.ends_with("A"))
+        .map(|start_node| {
+            nodes
+                .iter(start_node, |node| node.id.ends_with("Z"), &instructions)
+                .count()
         })
-        .count()
+        .reduce(lcm)
+        .unwrap()
         .to_string())
+}
+
+fn gcd(a: usize, b: usize) -> usize {
+    let mut a = a;
+    let mut b = b;
+    while b != 0 {
+        (a, b) = (b, a % b);
+    }
+
+    a
+}
+
+fn lcm(a: usize, b: usize) -> usize {
+    a * b / gcd(a, b)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -67,21 +85,6 @@ impl<'a> Nodes<'a> {
         instructions: &'a Vec<Instruction>,
     ) -> impl Iterator<Item = &'a Node> + 'a {
         NodesIterator::new(start_node_id, finished, &instructions, &self)
-    }
-
-    fn ghost_iter(
-        &'a self,
-        start_suffix: &'a str,
-        finished: fn(&Node) -> bool,
-        instructions: &'a Vec<Instruction>,
-    ) -> impl Iterator<Item = Vec<&'a Node>> + 'a {
-        let start_nodes = self
-            .node_lookup
-            .keys()
-            .filter(|node_id| node_id.ends_with(start_suffix))
-            .collect::<Vec<_>>();
-
-        GhostNodesIter::new(start_nodes, finished, instructions, &self)
     }
 }
 
@@ -122,58 +125,6 @@ impl<'a> Iterator for NodesIterator<'a> {
         self.current_node = next_node;
 
         Some(next_node)
-    }
-}
-
-struct GhostNodesIter<'a> {
-    nodes_iterators: Option<Vec<NodesIterator<'a>>>,
-    finished: fn(&Node) -> bool,
-}
-
-impl<'a> GhostNodesIter<'a> {
-    fn new(
-        start_nodes: Vec<&'a NodeId>,
-        finished: fn(&Node) -> bool,
-        instructions: &'a Vec<Instruction>,
-        nodes: &'a Nodes,
-    ) -> Self {
-        GhostNodesIter {
-            nodes_iterators: start_nodes
-                .iter()
-                .map(|start_node_id| {
-                    Some(NodesIterator::new(
-                        start_node_id,
-                        |_node| false,
-                        instructions,
-                        nodes,
-                    ))
-                })
-                .collect(),
-            finished,
-        }
-    }
-}
-
-impl<'a> Iterator for GhostNodesIter<'a> {
-    type Item = Vec<&'a Node<'a>>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.nodes_iterators.is_none() {
-            return None;
-        }
-
-        let ghost_nodes: Vec<_> = self
-            .nodes_iterators
-            .as_mut()
-            .unwrap()
-            .iter_mut()
-            .map(|node_iter| node_iter.next().unwrap())
-            .collect();
-
-        if ghost_nodes.iter().all(|node| (self.finished)(node)) {
-            self.nodes_iterators = None
-        }
-        Some(ghost_nodes)
     }
 }
 
