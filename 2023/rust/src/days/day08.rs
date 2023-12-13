@@ -26,10 +26,10 @@ pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
     Ok(nodes
         .node_lookup
         .keys()
-        .filter(|node_id| node_id.ends_with("A"))
+        .filter(|node_id| node_id.ends_with('A'))
         .map(|start_node| {
             nodes
-                .iter(start_node, |node| node.id.ends_with("Z"), &instructions)
+                .iter(start_node, |node| node.id.ends_with('Z'), &instructions)
                 .count()
         })
         .reduce(lcm)
@@ -82,9 +82,9 @@ impl<'a> Nodes<'a> {
         &'a self,
         start_node_id: NodeId<'a>,
         finished: fn(&Node) -> bool,
-        instructions: &'a Vec<Instruction>,
+        instructions: &'a [Instruction],
     ) -> impl Iterator<Item = &'a Node> + 'a {
-        NodesIterator::new(start_node_id, finished, &instructions, &self)
+        NodesIterator::new(start_node_id, finished, instructions, self)
     }
 }
 
@@ -99,7 +99,7 @@ impl<'a> NodesIterator<'a> {
     fn new(
         start_node_id: NodeId<'a>,
         finished: fn(&Node) -> bool,
-        instructions: &'a Vec<Instruction>,
+        instructions: &'a [Instruction],
         nodes: &'a Nodes<'a>,
     ) -> Self {
         Self {
@@ -173,7 +173,7 @@ fn instruction(s: &str) -> IResult<&str, Instruction> {
 fn nodes(s: &str) -> IResult<&str, Nodes> {
     fold_many0(
         terminated(node, multispace0),
-        || Nodes::new(),
+        Nodes::new,
         |mut acc: Nodes, node| {
             acc.push(node);
             acc

@@ -113,7 +113,7 @@ impl Ord for Hand {
                 .cards
                 .iter()
                 .zip(other.cards.iter())
-                .find_map(|(c1, c2)| match c1.cmp(&c2) {
+                .find_map(|(c1, c2)| match c1.cmp(c2) {
                     Equal => None,
                     c => Some(c),
                 })
@@ -125,7 +125,7 @@ impl Ord for Hand {
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 

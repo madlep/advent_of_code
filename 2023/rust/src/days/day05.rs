@@ -78,7 +78,7 @@ struct Almanac {
     category_mappings: HashMap<(Category, Category), CategoryMapping>,
 }
 
-impl<'a> Almanac {
+impl Almanac {
     fn new() -> Self {
         Almanac {
             category_mappings: HashMap::new(),
@@ -161,11 +161,9 @@ where
     type Item = Range<Id>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.remaining.is_none() {
-            return None;
-        }
+        self.remaining.as_ref()?;
 
-        let r = self.remaining.as_ref().map(|r| r.clone()).unwrap();
+        let r = self.remaining.as_ref().cloned().unwrap();
         let rstart = r.start;
         let rend = r.end;
 
@@ -184,7 +182,7 @@ where
             return self.remaining.take();
         }
 
-        let m = peeked.map(|m| m.clone()).unwrap();
+        let m = peeked.cloned().unwrap();
         let mstart = m.range.start;
         let mend = m.range.end;
 

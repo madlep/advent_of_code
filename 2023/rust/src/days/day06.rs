@@ -35,7 +35,7 @@ impl Race {
         // this could be optimised, but runs fine ¯\_(ツ)_/¯
         (0..=self.time)
             .filter(|t| (self.time - t) * t > self.distance_record)
-            .count() as usize
+            .count()
     }
 }
 
@@ -46,7 +46,7 @@ fn parse(s: &str) -> Result<Vec<Race>, ParseError> {
     let (_rest, (times, distances)) = races(s).map_err(|e| ParseError(e.to_string()))?;
     Ok(distances
         .into_iter()
-        .zip(times.into_iter())
+        .zip(times)
         .map(|(distance_record, time)| Race {
             distance_record,
             time,
