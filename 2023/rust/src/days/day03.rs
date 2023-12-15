@@ -1,3 +1,4 @@
+use crate::Coord;
 use std::collections::{HashMap, HashSet};
 
 pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
@@ -149,41 +150,22 @@ impl Number {
         let c = &self.coord;
         let mut result = Vec::new();
         // row above + below
-        for dx in -1..=(self.width as i32) {
+        for dx in -1..=(self.width as i64) {
             result.push(c.translate(dx, -1));
             result.push(c.translate(dx, 1));
         }
         // left end
         result.push(c.translate(-1, 0));
         // right end
-        result.push(c.translate(self.width as i32, 0));
+        result.push(c.translate(self.width as i64, 0));
 
         result
     }
 
     fn coords(&self) -> Vec<Coord> {
         (0..(self.width as isize))
-            .map(|dx| self.coord.translate(dx as i32, 0))
+            .map(|dx| self.coord.translate(dx as i64, 0))
             .collect()
-    }
-}
-
-#[derive(Hash, Eq, PartialEq, Clone)]
-struct Coord {
-    x: i32,
-    y: i32,
-}
-
-impl Coord {
-    fn new(x: i32, y: i32) -> Self {
-        Coord { x, y }
-    }
-
-    fn translate(&self, x: i32, y: i32) -> Self {
-        Self {
-            x: self.x + x,
-            y: self.y + y,
-        }
     }
 }
 
@@ -291,10 +273,10 @@ fn parse(s: &str) -> Schematic {
         .fold(Schematic::new(), |acc, (y, line)| {
             Tokenizer::new(line).fold(acc, |mut acc2, tok| match tok {
                 Token::Number { n, i, width } => {
-                    let x = i as i32;
+                    let x = i as i64;
                     let schematic_number = Number {
                         num: n,
-                        coord: Coord::new(x, y as i32),
+                        coord: Coord::new(x, y as i64),
                         width,
                     };
                     for c in schematic_number.coords() {
@@ -304,8 +286,8 @@ fn parse(s: &str) -> Schematic {
                     acc2
                 }
                 Token::Symbol { sym, i } => {
-                    let x = i as i32;
-                    let coord = Coord::new(x, y as i32);
+                    let x = i as i64;
+                    let coord = Coord::new(x, y as i64);
                     acc2.symbols.set(coord.clone(), Symbol { sym, coord });
                     acc2
                 }

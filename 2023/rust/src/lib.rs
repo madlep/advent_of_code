@@ -22,3 +22,35 @@ fn load_data(file_path: PathBuf) -> Result<String, std::io::Error> {
 #[derive(thiserror::Error, Debug, PartialEq)]
 #[error("error parsing: `{0}`")]
 struct ParseError(String);
+
+#[derive(Hash, Eq, PartialEq, Clone, Copy, Debug)]
+struct Coord {
+    x: i64,
+    y: i64,
+}
+
+impl Coord {
+    fn new(x: i64, y: i64) -> Self {
+        Coord { x, y }
+    }
+
+    fn translate(&self, x: i64, y: i64) -> Self {
+        Self {
+            x: self.x + x,
+            y: self.y + y,
+        }
+    }
+
+    fn neighbours(&self) -> Vec<Self> {
+        vec![
+            // north
+            Self::new(self.x, self.y - 1),
+            // west
+            Self::new(self.x - 1, self.y),
+            // east
+            Self::new(self.x + 1, self.y),
+            // south
+            Self::new(self.x, self.y + 1),
+        ]
+    }
+}
