@@ -288,7 +288,7 @@ fn parse(s: &str) -> Schematic {
                 Token::Symbol { sym, i } => {
                     let x = i as i64;
                     let coord = Coord::new(x, y as i64);
-                    acc2.symbols.set(coord.clone(), Symbol { sym, coord });
+                    acc2.symbols.set(coord, Symbol { sym, coord });
                     acc2
                 }
                 Token::Empty => acc2,
