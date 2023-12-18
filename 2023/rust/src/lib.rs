@@ -54,3 +54,30 @@ impl Coord {
         ]
     }
 }
+
+#[allow(dead_code)]
+enum Translation {
+    NorthWest,
+    North,
+    NorthEast,
+    West,
+    East,
+    SouthWest,
+    South,
+    SouthEast,
+}
+
+impl Translation {
+    fn translate(&self, c: Coord) -> Coord {
+        match self {
+            Translation::NorthWest => c.translate(-1, -1),
+            Translation::North => c.translate(0, -1),
+            Translation::NorthEast => c.translate(1, -1),
+            Translation::West => c.translate(-1, 0),
+            Translation::East => c.translate(1, 0),
+            Translation::SouthWest => c.translate(-1, 1),
+            Translation::South => c.translate(0, 1),
+            Translation::SouthEast => c.translate(1, 1),
+        }
+    }
+}

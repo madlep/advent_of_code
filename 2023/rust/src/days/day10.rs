@@ -9,13 +9,13 @@ use nom::{
     IResult,
 };
 
-use crate::{Coord, ParseError};
+use crate::{Coord, ParseError, Translation};
 
 pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
     let pipes = parse(data)?;
 
-    let path_iter = pipes.path_iter();
-    Ok(path_iter
+    Ok(pipes
+        .path_iter()
         .enumerate()
         .take_while(|(i, node)| {
             *i == 0 || node.coord != pipes.start_coord.expect("start coord not set")
@@ -25,8 +25,23 @@ pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
         .to_string())
 }
 
-pub fn part2(_data: &str) -> Result<String, Box<dyn std::error::Error>> {
-    todo!()
+pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let pipes = parse(data)?;
+
+    // https://en.wikipedia.org/wiki/Shoelace_formula
+    let mut shoelace = pipes.path_iter().collect::<Vec<PipeNode>>();
+    shoelace.push(shoelace[0]);
+    let a = shoelace
+        .windows(2)
+        .map(|nodes| (nodes[0].coord.x * nodes[1].coord.y) - (nodes[0].coord.y * nodes[1].coord.x))
+        .sum::<i64>()
+        .div(2)
+        .abs();
+
+    // https://en.wikipedia.org/wiki/Pick%27s_theorem
+    let b = shoelace.len() as i64 - 1;
+    let i = a - b / 2 + 1;
+    Ok(i.to_string())
 }
 
 struct Pipes {
@@ -48,7 +63,7 @@ impl<'a> Pipes {
     }
 
     fn set(&mut self, pipe_node: PipeNode) {
-        if pipe_node.pipe_part == Start {
+        if pipe_node.pipe_type == PipeType::Start {
             self.start_coord = Some(pipe_node.coord);
         }
         self.pipe_nodes.insert(pipe_node.coord, pipe_node);
@@ -59,33 +74,33 @@ impl<'a> Pipes {
     }
 
     fn path_iter(&'a self) -> impl Iterator<Item = PipeNode> + 'a {
-        PipeIterator::new(&self)
+        PipeIterator::new(self)
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 struct PipeNode {
     coord: Coord,
-    pipe_part: PipePart,
+    pipe_type: PipeType,
 }
 
 impl PipeNode {
-    fn new(coord: Coord, pipe_part: PipePart) -> Self {
-        Self { coord, pipe_part }
+    fn new(coord: Coord, pipe_type: PipeType) -> Self {
+        Self { coord, pipe_type }
     }
 
     fn connections(&self) -> Vec<Coord> {
-        match self.pipe_part.connections() {
-            Some(((x1, y1), (x2, y2))) => {
-                vec![self.coord.translate(x1, y1), self.coord.translate(x2, y2)]
+        match self.pipe_type.connections() {
+            Some((t1, t2)) => {
+                vec![t1.translate(self.coord), t2.translate(self.coord)]
             }
             None => vec![],
         }
     }
 
     fn is_connection(&self, other: Coord) -> bool {
-        if let Some((c1, c2)) = self.pipe_part.connections() {
-            other == self.coord.translate(c1.0, c1.1) || other == self.coord.translate(c2.0, c2.1)
+        if let Some((t1, t2)) = self.pipe_type.connections() {
+            other == t1.translate(self.coord) || other == t2.translate(self.coord)
         } else {
             false
         }
@@ -165,8 +180,8 @@ impl<'a> Iterator for PipeIterator<'a> {
     }
 }
 
-#[derive(PartialEq, Clone, Copy)]
-enum PipePart {
+#[derive(PartialEq, Clone, Copy, Debug)]
+enum PipeType {
     Start,
     Vertical,
     Horizontal,
@@ -176,24 +191,20 @@ enum PipePart {
     SouthEastBend,
     Empty,
 }
-use PipePart::*;
 
-const NORTH: (i64, i64) = (0, -1);
-const EAST: (i64, i64) = (1, 0);
-const SOUTH: (i64, i64) = (0, 1);
-const WEST: (i64, i64) = (-1, 0);
+use Translation::*;
 
-impl PipePart {
-    fn connections(&self) -> Option<((i64, i64), (i64, i64))> {
+impl PipeType {
+    fn connections(&self) -> Option<(Translation, Translation)> {
         match self {
-            Start => None,
-            Vertical => Some((NORTH, SOUTH)),
-            Horizontal => Some((WEST, EAST)),
-            NorthEastBend => Some((NORTH, EAST)),
-            NorthWestBend => Some((NORTH, WEST)),
-            SouthWestBend => Some((SOUTH, WEST)),
-            SouthEastBend => Some((SOUTH, EAST)),
-            Empty => None,
+            PipeType::Start => None,
+            PipeType::Vertical => Some((North, South)),
+            PipeType::Horizontal => Some((West, East)),
+            PipeType::NorthEastBend => Some((North, East)),
+            PipeType::NorthWestBend => Some((North, West)),
+            PipeType::SouthWestBend => Some((South, West)),
+            PipeType::SouthEastBend => Some((South, East)),
+            PipeType::Empty => None,
         }
     }
 }
@@ -206,15 +217,15 @@ fn parse(s: &str) -> Result<Pipes, ParseError> {
 }
 
 fn pipes(s: &str) -> IResult<&str, Pipes> {
-    map(pipe_parts_lines, |parts_lines| {
+    map(pipe_types_lines, |parts_lines| {
         let mut pipes = Pipes::new();
         for (y, parts_line) in parts_lines.into_iter().enumerate() {
-            for (x, pipe_part) in parts_line.into_iter().enumerate() {
-                match pipe_part {
-                    Empty => continue,
+            for (x, pipe_type) in parts_line.into_iter().enumerate() {
+                match pipe_type {
+                    PipeType::Empty => continue,
                     _ => {
                         let coord = Coord::new(x as i64, y as i64);
-                        pipes.set(PipeNode::new(coord, pipe_part))
+                        pipes.set(PipeNode::new(coord, pipe_type))
                     }
                 }
             }
@@ -223,23 +234,23 @@ fn pipes(s: &str) -> IResult<&str, Pipes> {
     })(s)
 }
 
-fn pipe_parts_lines(s: &str) -> IResult<&str, Vec<Vec<PipePart>>> {
-    separated_list0(newline, pipe_parts_line)(s)
+fn pipe_types_lines(s: &str) -> IResult<&str, Vec<Vec<PipeType>>> {
+    separated_list0(newline, pipe_types_line)(s)
 }
 
-fn pipe_parts_line(s: &str) -> IResult<&str, Vec<PipePart>> {
-    many0(pipe_part)(s)
+fn pipe_types_line(s: &str) -> IResult<&str, Vec<PipeType>> {
+    many0(pipe_type)(s)
 }
 
-fn pipe_part(s: &str) -> IResult<&str, PipePart> {
+fn pipe_type(s: &str) -> IResult<&str, PipeType> {
     alt((
-        value(Start, tag("S")),
-        value(Vertical, tag("|")),
-        value(Horizontal, tag("-")),
-        value(NorthEastBend, tag("L")),
-        value(NorthWestBend, tag("J")),
-        value(SouthWestBend, tag("7")),
-        value(SouthEastBend, tag("F")),
-        value(Empty, tag(".")),
+        value(PipeType::Start, tag("S")),
+        value(PipeType::Vertical, tag("|")),
+        value(PipeType::Horizontal, tag("-")),
+        value(PipeType::NorthEastBend, tag("L")),
+        value(PipeType::NorthWestBend, tag("J")),
+        value(PipeType::SouthWestBend, tag("7")),
+        value(PipeType::SouthEastBend, tag("F")),
+        value(PipeType::Empty, tag(".")),
     ))(s)
 }
