@@ -12,10 +12,19 @@ use nom::{
 use crate::{Coord, ParseError};
 
 pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
+    run(data, 1)
+}
+
+pub fn part2(data: &str) -> Result<String, Box<dyn std::error::Error>> {
+    run(data, 1000000)
+}
+
+pub fn run(data: &str, expansion_size: i64) -> Result<String, Box<dyn std::error::Error>> {
     let space_map = parse(data)?;
 
     let expanded_rows = space_map.expanded_rows();
     let expanded_columns = space_map.expanded_columns();
+    let expansion_size = max(1, expansion_size - 1);
 
     let mut galaxies = space_map.galaxies();
     galaxies.sort_by_key(|g| (g.y, g.x));
@@ -25,47 +34,48 @@ pub fn part1(data: &str) -> Result<String, Box<dyn std::error::Error>> {
         for g2_id in g1_id + 1..galaxies.len() {
             let g1 = galaxies[g1_id];
             let g2 = galaxies[g2_id];
-            let d = distance(g1, g2, &expanded_rows, &expanded_columns);
+            let d = distance(g1, g2, &expanded_rows, &expanded_columns, expansion_size);
             total_lengths += d;
         }
     }
-
     Ok(total_lengths.to_string())
 }
 
-pub fn part2(_data: &str) -> Result<String, Box<dyn std::error::Error>> {
-    todo!()
+fn distance(
+    g1: Coord,
+    g2: Coord,
+    expanded_rows: &Vec<i64>,
+    expanded_columns: &Vec<i64>,
+    expansion_size: i64,
+) -> i64 {
+    let x_expanded = calc_expansion(g1.x, g2.x, &expanded_columns, expansion_size);
+    let y_expanded = calc_expansion(g1.y, g2.y, &expanded_rows, expansion_size);
+
+    x_expanded + y_expanded
 }
 
-fn distance(g1: Coord, g2: Coord, expanded_rows: &Vec<i64>, expanded_columns: &Vec<i64>) -> i64 {
-    let (x1, x2) = {
-        let mut xs = [g1.x, g2.x];
-        xs.sort();
-        (xs[0], xs[1])
-    };
+fn calc_expansion(from: i64, to: i64, expanded: &Vec<i64>, expansion_size: i64) -> i64 {
+    let (from, to) = if from <= to { (from, to) } else { (to, from) };
 
-    let (y1, y2) = {
-        let mut ys = [g1.y, g2.y];
-        ys.sort();
-        (ys[0], ys[1])
-    };
+    // let exp_start = expanded.partition_point(|i| *i < from) as i64 + 1;
+    // let exp_end = expanded.partition_point(|i| *i < to) as i64;
 
-    let x_expanded = calc_expansion(x1, x2, &expanded_columns);
-    let y_expanded = calc_expansion(y1, y2, &expanded_rows);
-
-    (x_expanded + y_expanded).abs()
-}
-
-fn calc_expansion(from: i64, to: i64, expanded: &Vec<i64>) -> i64 {
-    let exp_start = expanded.partition_point(|i| *i < from) as i64 + 1;
-    let exp_end = expanded.partition_point(|i| *i < to) as i64;
+    //if exp_end >= exp_start {
+    //let expansion = (exp_end - exp_start + 1) * expansion_size;
+    let mut expansion = 0;
+    for exp in expanded.iter().copied() {
+        if exp > from && exp < to {
+            expansion += expansion_size;
+        } else if exp >= to {
+            break;
+        }
+    }
 
     let unexpanded_size = to - from;
-    if exp_end >= exp_start {
-        unexpanded_size + exp_end - exp_start + 1
-    } else {
-        unexpanded_size
-    }
+    unexpanded_size + expansion
+    //} else {
+    //    unexpanded_size
+    //}
 }
 
 struct SpaceMap {
@@ -171,9 +181,24 @@ mod tests {
                 Coord::new(1, 5),
                 Coord::new(4, 9),
                 &vec![3, 7],
-                &vec![2, 5, 8]
+                &vec![2, 5, 8],
+                1
             ),
             9
+        );
+    }
+
+    #[test]
+    fn test_distances_10() {
+        assert_eq!(
+            distance(
+                Coord::new(1, 5),
+                Coord::new(4, 9),
+                &vec![3, 7],
+                &vec![2, 5, 8],
+                10
+            ),
+            27
         );
     }
 }

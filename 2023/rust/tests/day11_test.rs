@@ -1,4 +1,4 @@
-use aoc2023::days::day11::{part1, part2};
+use aoc2023::days::day11::{part1, run};
 
 const DATA: &str = "\
 ...#......
@@ -23,7 +23,7 @@ fn part1_example_data() {
 #[test]
 fn part2_example_data() {
     assert_eq!(
-        part2(DATA).map_err(|e| e.to_string()),
-        Ok("TODO".to_string())
+        run(DATA, 10).map_err(|e| e.to_string()),
+        Ok("1030".to_string())
     );
 }
