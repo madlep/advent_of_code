@@ -44,17 +44,17 @@ pub fn run(data: &str, expansion_size: i64) -> Result<String, Box<dyn std::error
 fn distance(
     g1: Coord,
     g2: Coord,
-    expanded_rows: &Vec<i64>,
-    expanded_columns: &Vec<i64>,
+    expanded_rows: &[i64],
+    expanded_columns: &[i64],
     expansion_size: i64,
 ) -> i64 {
-    let x_expanded = calc_expansion(g1.x, g2.x, &expanded_columns, expansion_size);
-    let y_expanded = calc_expansion(g1.y, g2.y, &expanded_rows, expansion_size);
+    let x_expanded = calc_expansion(g1.x, g2.x, expanded_columns, expansion_size);
+    let y_expanded = calc_expansion(g1.y, g2.y, expanded_rows, expansion_size);
 
     x_expanded + y_expanded
 }
 
-fn calc_expansion(from: i64, to: i64, expanded: &Vec<i64>, expansion_size: i64) -> i64 {
+fn calc_expansion(from: i64, to: i64, expanded: &[i64], expansion_size: i64) -> i64 {
     let (from, to) = if from <= to { (from, to) } else { (to, from) };
 
     // let exp_start = expanded.partition_point(|i| *i < from) as i64 + 1;

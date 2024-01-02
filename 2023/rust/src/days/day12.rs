@@ -77,7 +77,7 @@ fn permutation_count<'a>(
     if let Some(result) = memo.get(&(springs, checksums, partial)) {
         *result
     } else {
-        let result = if is_possible(springs, &checksums, partial) {
+        let result = if is_possible(springs, checksums, partial) {
             match_permutation(memo, springs, checksums, partial)
         } else {
             0
