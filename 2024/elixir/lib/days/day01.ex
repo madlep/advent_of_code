@@ -8,13 +8,8 @@ defmodule Aoc24.Days.Day01 do
   end
 
   def part2(input) do
-    {ns1, ns2} =
-      input
-      |> parse()
-
-    ns2_counts =
-      ns2
-      |> Enum.reduce(%{}, fn n, counts -> Map.update(counts, n, 1, &(&1 + 1)) end)
+    {ns1, ns2} = parse(input)
+    ns2_counts = Enum.reduce(ns2, %{}, fn n, counts -> Map.update(counts, n, 1, &(&1 + 1)) end)
 
     ns1
     |> Enum.map(fn n1 -> n1 * Map.get(ns2_counts, n1, 0) end)
