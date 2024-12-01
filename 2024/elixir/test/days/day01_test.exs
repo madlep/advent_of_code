@@ -5,14 +5,18 @@ defmodule Aoc24.Days.Day01Test do
   doctest Day01
 
   setup do
-    example = """
-    3   4
-    4   3
-    2   5
-    1   3
-    3   9
-    3   3
-    """
+    {:ok, io} =
+      """
+      3   4
+      4   3
+      2   5
+      1   3
+      3   9
+      3   3
+      """
+      |> StringIO.open()
+
+    example = IO.stream(io, :line)
 
     {:ok, example: example}
   end

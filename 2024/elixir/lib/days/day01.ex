@@ -18,10 +18,8 @@ defmodule Aoc24.Days.Day01 do
 
   defp parse(input) do
     input
-    |> String.trim()
-    |> String.split("\n")
     |> Enum.map(fn line ->
-      [n1, n2] = line |> String.split(~r/\s+/)
+      [n1, n2] = line |> String.trim() |> String.split(~r/\s+/)
       {String.to_integer(n1), String.to_integer(n2)}
     end)
     |> Enum.reduce({[], []}, fn {n1, n2}, {ns1, ns2} -> {[n1 | ns1], [n2 | ns2]} end)

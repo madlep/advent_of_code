@@ -28,7 +28,7 @@ defmodule Mix.Tasks.Aoc.Run do
     data_file_name = "day#{day_num}.txt"
     data_file = Path.join([:code.priv_dir(:aoc24), data_file_name])
     if not File.exists?(data_file), do: raise("no data file #{data_file_name} for day #{day_num}")
-    data = File.read!(data_file)
+    data = File.stream!(data_file)
 
     IO.puts("Running day:#{day} part:#{part}")
     result = apply(day_mod, part_fn, [data])
