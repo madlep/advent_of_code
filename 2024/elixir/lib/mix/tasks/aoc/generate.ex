@@ -26,7 +26,7 @@ defmodule Mix.Tasks.Aoc.Generate do
     File.write(
       new_file_path,
       """
-      defmodule #{day_mod} do
+      defmodule #{Macro.to_string(day_mod)} do
         @spec part1(Enumerable.t(String.t())) :: integer()
         def part1(_input) do
           -1
@@ -56,10 +56,10 @@ defmodule Mix.Tasks.Aoc.Generate do
     File.write(
       new_file_path,
       """
-      defmodule #{test_mod} do
+      defmodule #{Macro.to_string(test_mod)} do
         use ExUnit.Case, async: true
 
-        alias #{day_mod}
+        alias #{Macro.to_string(day_mod)}
         doctest Day#{day_num}
 
         setup do
