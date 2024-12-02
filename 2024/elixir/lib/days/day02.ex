@@ -10,21 +10,6 @@ defmodule Aoc24.Days.Day02 do
     end)
   end
 
-  def safe?(reports), do: safe?(reports, tolerated(reports))
-
-  def tolerated([r1, r2 | _]) when r1 < r2, do: 1..3
-  def tolerated(_), do: -3..-1
-
-  def safe?([_r], _), do: true
-
-  def safe?([r1 | [r2 | _] = rest], tol) do
-    if (r2 - r1) in tol do
-      safe?(rest, tol)
-    else
-      false
-    end
-  end
-
   @spec part2(Enumerable.t(String.t())) :: integer()
   def part2(input) do
     input
@@ -32,18 +17,19 @@ defmodule Aoc24.Days.Day02 do
       line
       |> String.split()
       |> Enum.map(&String.to_integer/1)
-      |> take_one_permutations()
+      |> take_one_perms()
       |> Enum.any?(&safe?/1)
     end)
   end
 
-  def take_one_permutations(reports) do
-    take_one_permutations(reports, [], [])
-  end
+  defp tolerated([r1, r2 | _]), do: if(r1 < r2, do: 1..3, else: -3..-1)
 
-  def take_one_permutations([], _, acc), do: Enum.reverse(acc)
+  defp safe?(reports), do: safe?(reports, tolerated(reports))
+  defp safe?([_r], _), do: true
+  defp safe?([r1 | [r2 | _] = rest], t), do: if((r2 - r1) in t, do: safe?(rest, t), else: false)
 
-  def take_one_permutations([r | rest], buffer, acc) do
-    take_one_permutations(rest, [r | buffer], [Enum.reverse(buffer) ++ rest | acc])
-  end
+  defp take_one_perms(reports), do: t1perms(reports, [], [])
+
+  defp t1perms([], _, acc), do: Enum.reverse(acc)
+  defp t1perms([r | rs], rs2, acc), do: t1perms(rs, [r | rs2], [Enum.reverse(rs2) ++ rs | acc])
 end
