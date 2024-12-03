@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Aoc.Generate do
   end
 
   defp generate_solution(day_num) do
-    day_mod = Module.concat([:Aoc24, Days, :"Day#{day_num}"])
+    day_mod = Module.concat([:Aoc24, :"Day#{day_num}"])
     if Code.ensure_loaded?(day_mod), do: raise("module #{day_mod} already exists")
 
     app_dir = File.cwd!()
@@ -43,10 +43,10 @@ defmodule Mix.Tasks.Aoc.Generate do
   end
 
   defp generate_test(day_num) do
-    test_mod = Module.concat([:Aoc24, Days, :"Day#{day_num}Test"])
+    test_mod = Module.concat([:Aoc24, :"Day#{day_num}Test"])
     if Code.ensure_loaded?(test_mod), do: raise("module #{test_mod} already exists")
 
-    day_mod = Module.concat([:Aoc24, Days, :"Day#{day_num}"])
+    day_mod = Module.concat([:Aoc24, :"Day#{day_num}"])
 
     app_dir = File.cwd!()
     new_file_path = Path.join([app_dir, "test", "aoc24", "day#{day_num}_test.exs"])

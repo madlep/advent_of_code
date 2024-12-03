@@ -1,7 +1,7 @@
-defmodule Aoc24.Days.Day01Test do
+defmodule Aoc24.Day01Test do
   use ExUnit.Case, async: true
 
-  alias Aoc24.Days.Day01
+  alias Aoc24.Day01
   doctest Day01
 
   setup do

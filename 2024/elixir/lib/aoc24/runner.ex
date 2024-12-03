@@ -2,7 +2,7 @@ defmodule Aoc24.Runner do
   def run(day, part) do
     if day not in 1..25, do: raise("invalid day #{day}")
     day_num = day |> Integer.to_string() |> String.pad_leading(2, "0")
-    day_mod = Module.concat([:Aoc24, Days, :"Day#{day_num}"])
+    day_mod = Module.concat([:Aoc24, :"Day#{day_num}"])
     if not Code.ensure_loaded?(day_mod), do: raise("#{day_mod} doesn't exist")
 
     if part not in 1..2, do: raise("invalid part #{part}")

@@ -1,4 +1,4 @@
-defmodule Aoc24.Days.Day01 do
+defmodule Aoc24.Day01 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
