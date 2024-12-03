@@ -6,7 +6,7 @@ defmodule Aoc24.Day03 do
     |> Enum.sum()
   end
 
-  @spec part2(Enumerable.t(String.t())) :: integer()
+  @spec part2(String.t()) :: integer()
   def part2(input) do
     input
     |> parse_enabled([], :do)
