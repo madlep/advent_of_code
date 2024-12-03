@@ -22,6 +22,28 @@ defmodule Aoc24.Day03 do
     end
   end
 
+  defp parse_enabled(<<>>, acc, _enabled), do: acc
+
+  defp parse_enabled(line, acc, :do) do
+    case string("don't()", line) do
+      {:ok, rest} ->
+        parse_enabled(rest, acc, :dont)
+
+      {:error, _} ->
+        case mul(line) do
+          {:ok, n, rest} -> parse_enabled(rest, [n | acc], :do)
+          {:error, rest} -> parse_enabled(rest, acc, :do)
+        end
+    end
+  end
+
+  defp parse_enabled(line, acc, :dont) do
+    case string("do()", line) do
+      {:ok, rest} -> parse_enabled(rest, acc, :do)
+      {:error, rest} -> parse_enabled(rest, acc, :dont)
+    end
+  end
+
   defp mul(line) do
     with {:ok, rest} <- string("mul(", line),
          {:ok, n1, rest} <- digit(rest),
@@ -43,28 +65,6 @@ defmodule Aoc24.Day03 do
     case Integer.parse(line) do
       {n, rest} -> {:ok, n, rest}
       :error -> {:error, rest}
-    end
-  end
-
-  defp parse_enabled(<<>>, acc, _enabled), do: acc
-
-  defp parse_enabled(line, acc, :do) do
-    case string("don't()", line) do
-      {:ok, rest} ->
-        parse_enabled(rest, acc, :dont)
-
-      {:error, _} ->
-        case mul(line) do
-          {:ok, n, rest} -> parse_enabled(rest, [n | acc], :do)
-          {:error, rest} -> parse_enabled(rest, acc, :do)
-        end
-    end
-  end
-
-  defp parse_enabled(line, acc, :dont) do
-    case string("do()", line) do
-      {:ok, rest} -> parse_enabled(rest, acc, :do)
-      {:error, rest} -> parse_enabled(rest, acc, :dont)
     end
   end
 end
