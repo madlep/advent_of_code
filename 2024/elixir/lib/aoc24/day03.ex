@@ -2,23 +2,23 @@ defmodule Aoc24.Days.Day03 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
-    |> parse_line([])
+    |> parse([])
     |> Enum.sum()
   end
 
   @spec part2(Enumerable.t(String.t())) :: integer()
   def part2(input) do
     input
-    |> parse_line_enabled([], true)
+    |> parse_enabled([], :do)
     |> Enum.sum()
   end
 
-  defp parse_line(<<>>, acc), do: acc
+  defp parse(<<>>, acc), do: acc
 
-  defp parse_line(line, acc) do
+  defp parse(line, acc) do
     case mul(line) do
-      {:ok, n, rest} -> parse_line(rest, [n | acc])
-      {:error, rest} -> parse_line(rest, acc)
+      {:ok, n, rest} -> parse(rest, [n | acc])
+      {:error, rest} -> parse(rest, acc)
     end
   end
 
@@ -46,25 +46,25 @@ defmodule Aoc24.Days.Day03 do
     end
   end
 
-  defp parse_line_enabled(<<>>, acc, _enabled), do: acc
+  defp parse_enabled(<<>>, acc, _enabled), do: acc
 
-  defp parse_line_enabled(line, acc, true) do
+  defp parse_enabled(line, acc, :do) do
     case string("don't()", line) do
       {:ok, rest} ->
-        parse_line_enabled(rest, acc, false)
+        parse_enabled(rest, acc, :dont)
 
       {:error, _} ->
         case mul(line) do
-          {:ok, n, rest} -> parse_line_enabled(rest, [n | acc], true)
-          {:error, rest} -> parse_line_enabled(rest, acc, true)
+          {:ok, n, rest} -> parse_enabled(rest, [n | acc], :do)
+          {:error, rest} -> parse_enabled(rest, acc, :do)
         end
     end
   end
 
-  defp parse_line_enabled(line, acc, false) do
+  defp parse_enabled(line, acc, :dont) do
     case string("do()", line) do
-      {:ok, rest} -> parse_line_enabled(rest, acc, true)
-      {:error, rest} -> parse_line_enabled(rest, acc, false)
+      {:ok, rest} -> parse_enabled(rest, acc, :do)
+      {:error, rest} -> parse_enabled(rest, acc, :dont)
     end
   end
 end
