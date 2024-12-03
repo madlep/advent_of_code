@@ -14,11 +14,12 @@ defmodule Aoc24.Runner do
     apply(day_mod, part_fn, [data(day)])
   end
 
+  @spec data(pos_integer()) :: String.t()
   def data(day) do
     day_num = day |> Integer.to_string() |> String.pad_leading(2, "0")
     data_file_name = "day#{day_num}.txt"
     data_file = Path.join([:code.priv_dir(:aoc24), data_file_name])
     if not File.exists?(data_file), do: raise("no data file #{data_file_name} for day #{day_num}")
-    File.stream!(data_file)
+    File.read!(data_file)
   end
 end

@@ -27,12 +27,12 @@ defmodule Mix.Tasks.Aoc.Generate do
       new_file_path,
       """
       defmodule #{Macro.to_string(day_mod)} do
-        @spec part1(Enumerable.t(String.t())) :: integer()
+        @spec part1(String.t()) :: integer()
         def part1(_input) do
           -1
         end
 
-        @spec part2(Enumerable.t(String.t())) :: integer()
+        @spec part2(String.t()) :: integer()
         def part2(_input) do
           -1
         end
@@ -63,13 +63,10 @@ defmodule Mix.Tasks.Aoc.Generate do
         doctest Day#{day_num}
 
         setup do
-          {:ok, io} =
+          example =
             \"""
             EXAMPLE DATA HERE...
             \"""
-            |> StringIO.open()
-
-          example = IO.stream(io, :line)
 
           {:ok, example: example}
         end

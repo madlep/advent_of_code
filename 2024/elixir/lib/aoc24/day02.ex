@@ -1,7 +1,9 @@
 defmodule Aoc24.Days.Day02 do
-  @spec part1(Enumerable.t(String.t())) :: integer()
+  @spec part1(String.t()) :: integer()
   def part1(input) do
     input
+    |> String.trim()
+    |> String.split("\n")
     |> Enum.count(fn line ->
       line
       |> parse_report()
@@ -9,9 +11,11 @@ defmodule Aoc24.Days.Day02 do
     end)
   end
 
-  @spec part2(Enumerable.t(String.t())) :: integer()
+  @spec part2(String.t()) :: integer()
   def part2(input) do
     input
+    |> String.trim()
+    |> String.split("\n")
     |> Enum.count(fn line ->
       line
       |> parse_report()
