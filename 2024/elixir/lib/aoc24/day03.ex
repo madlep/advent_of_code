@@ -2,31 +2,31 @@ defmodule Aoc24.Day03 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
-    |> parse([], :do, :ignore_do)
+    |> parse([], true, :ignore)
     |> Enum.sum()
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
     input
-    |> parse([], :do, :use_do)
+    |> parse([], true, :use)
     |> Enum.sum()
   end
 
   defp parse(<<>>, acc, _enabled, _use_enabled), do: acc
 
-  defp parse("don't()" <> rest, acc, :do, :use_do), do: parse(rest, acc, :dont, :use_do)
+  defp parse("don't()" <> rest, acc, true, :use), do: parse(rest, acc, false, :use)
 
-  defp parse("do()" <> rest, acc, :dont, :use_do), do: parse(rest, acc, :do, :use_do)
-
-  defp parse(<<_::utf8, rest::binary>>, acc, :dont, :use_do), do: parse(rest, acc, :dont, :use_do)
-
-  defp parse(line, acc, enabled, use_enabled) do
+  defp parse(line, acc, true, use_enabled) do
     case mul(line) do
-      {:ok, n, rest} -> parse(rest, [n | acc], enabled, use_enabled)
-      {:error, rest} -> parse(rest, acc, enabled, use_enabled)
+      {:ok, n, rest} -> parse(rest, [n | acc], true, use_enabled)
+      {:error, rest} -> parse(rest, acc, true, use_enabled)
     end
   end
+
+  defp parse("do()" <> rest, acc, false, :use), do: parse(rest, acc, true, :use)
+
+  defp parse(<<_::utf8, rest::binary>>, acc, false, :use), do: parse(rest, acc, false, :use)
 
   defp mul(line) do
     with {:ok, rest} <- string("mul(", line),
