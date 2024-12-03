@@ -19,7 +19,7 @@ defmodule Mix.Tasks.Aoc.Generate do
     if Code.ensure_loaded?(day_mod), do: raise("module #{day_mod} already exists")
 
     app_dir = File.cwd!()
-    new_file_path = Path.join([app_dir, "lib", "days", "day#{day_num}.ex"])
+    new_file_path = Path.join([app_dir, "lib", "aoc24", "day#{day_num}.ex"])
 
     if File.exists?(new_file_path), do: raise("file #{new_file_path} already exists")
 
@@ -49,7 +49,7 @@ defmodule Mix.Tasks.Aoc.Generate do
     day_mod = Module.concat([:Aoc24, Days, :"Day#{day_num}"])
 
     app_dir = File.cwd!()
-    new_file_path = Path.join([app_dir, "test", "days", "day#{day_num}_test.exs"])
+    new_file_path = Path.join([app_dir, "test", "aoc24", "day#{day_num}_test.exs"])
 
     if File.exists?(new_file_path), do: raise("file #{new_file_path} already exists")
 
