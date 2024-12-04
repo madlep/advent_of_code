@@ -51,7 +51,9 @@ defmodule Aoc24.Day04 do
   end
 
   defp x_mas?(g, x, y) do
-    ~w[M S] == Enum.sort([at(g, x - 1, y - 1), at(g, x + 1, y + 1)]) &&
-      ~w[M S] == Enum.sort([at(g, x - 1, y + 1), at(g, x + 1, y - 1)])
+    corners = [~w[M S], ~w[S M]]
+
+    [at(g, x - 1, y - 1), at(g, x + 1, y + 1)] in corners &&
+      [at(g, x - 1, y + 1), at(g, x + 1, y - 1)] in corners
   end
 end
