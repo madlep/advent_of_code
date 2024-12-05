@@ -2,8 +2,7 @@ defmodule Aoc24.Day02 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
-    |> String.trim()
-    |> String.split("\n")
+    |> String.split("\n", trim: true)
     |> Enum.count(fn line ->
       line
       |> parse_report()
@@ -14,8 +13,7 @@ defmodule Aoc24.Day02 do
   @spec part2(String.t()) :: integer()
   def part2(input) do
     input
-    |> String.trim()
-    |> String.split("\n")
+    |> String.split("\n", trim: true)
     |> Enum.count(fn line ->
       line
       |> parse_report()

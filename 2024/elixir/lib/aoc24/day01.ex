@@ -16,10 +16,9 @@ defmodule Aoc24.Day01 do
 
   defp parse(input) do
     input
-    |> String.trim()
-    |> String.split("\n")
+    |> String.split("\n", trim: true)
     |> Enum.map(fn line ->
-      [n1, n2] = line |> String.trim() |> String.split(~r/\s+/)
+      [n1, n2] = line |> String.split(~r/\s+/, trim: true)
       {String.to_integer(n1), String.to_integer(n2)}
     end)
     |> Enum.unzip()

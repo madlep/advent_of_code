@@ -34,8 +34,7 @@ defmodule Aoc24.Day04 do
   defp parse(input) do
     grid =
       input
-      |> String.trim()
-      |> String.split("\n")
+      |> String.split("\n", trim: true)
       |> Enum.map(&(&1 |> String.graphemes() |> List.to_tuple()))
       |> List.to_tuple()
 
