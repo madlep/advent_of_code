@@ -4,15 +4,23 @@ defmodule Aoc24.Day06 do
     {guard, {grid, w, h}} = parse(input)
 
     guard
-    |> Stream.iterate(&move(&1, grid))
-    |> Stream.take_while(fn {{x, y}, _dir} -> x in 0..(w - 1) && y in 0..(h - 1) end)
+    |> route(grid, w, h)
     |> Enum.reduce(MapSet.new(), fn {pos, _dir}, acc -> MapSet.put(acc, pos) end)
     |> Enum.count()
   end
 
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    {guard, {grid, w, h}} = parse(input)
+
+    for x <- 0..(w - 1), y <- 0..(h - 1), !MapSet.member?(grid, {x, y}), reduce: 0 do
+      count ->
+        if loop?(route(guard, MapSet.put(grid, {x, y}), w, h)) do
+          count + 1
+        else
+          count
+        end
+    end
   end
 
   @left {-1, 0}
@@ -43,6 +51,23 @@ defmodule Aoc24.Day06 do
       end)
 
     {guard, {grid, w, h}}
+  end
+
+  defp route(guard, grid, w, h) do
+    guard
+    |> Stream.iterate(&move(&1, grid))
+    |> Stream.take_while(fn {{x, y}, _dir} -> x in 0..(w - 1) && y in 0..(h - 1) end)
+  end
+
+  defp loop?(route) do
+    route
+    |> Enum.reduce_while(MapSet.new(), fn guard, positions ->
+      if MapSet.member?(positions, guard) do
+        {:halt, :loop}
+      else
+        {:cont, MapSet.put(positions, guard)}
+      end
+    end) == :loop
   end
 
   defp move({{x, y} = pos, {dx, dy} = dir}, grid) do
