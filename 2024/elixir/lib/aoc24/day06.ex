@@ -22,36 +22,6 @@ defmodule Aoc24.Day06 do
     |> Enum.count()
   end
 
-  @left {-1, 0}
-  @up {0, -1}
-  @right {1, 0}
-  @down {0, 1}
-
-  defp parse(input) do
-    lines =
-      input
-      |> String.split("\n", trim: true)
-
-    h = length(lines)
-    w = lines |> hd() |> byte_size()
-
-    {guard, grid} =
-      lines
-      |> Enum.with_index()
-      |> Enum.reduce({nil, MapSet.new()}, fn {line, y}, acc ->
-        line
-        |> String.graphemes()
-        |> Enum.with_index()
-        |> Enum.reduce(acc, fn
-          {"^", x}, {_, grid} -> {{{x, y}, @up}, grid}
-          {"#", x}, {guard, grid} -> {guard, MapSet.put(grid, {x, y})}
-          {_, _}, acc -> acc
-        end)
-      end)
-
-    {guard, {grid, w, h}}
-  end
-
   defp route(guard, grid, w, h) do
     guard
     |> Stream.iterate(&move(&1, grid))
@@ -79,8 +49,38 @@ defmodule Aoc24.Day06 do
     end
   end
 
+  @left {-1, 0}
+  @up {0, -1}
+  @right {1, 0}
+  @down {0, 1}
+
   defp turn(@left), do: @up
   defp turn(@up), do: @right
   defp turn(@right), do: @down
   defp turn(@down), do: @left
+
+  defp parse(input) do
+    lines =
+      input
+      |> String.split("\n", trim: true)
+
+    h = length(lines)
+    w = lines |> hd() |> byte_size()
+
+    {guard, grid} =
+      lines
+      |> Enum.with_index()
+      |> Enum.reduce({nil, MapSet.new()}, fn {line, y}, acc ->
+        line
+        |> String.graphemes()
+        |> Enum.with_index()
+        |> Enum.reduce(acc, fn
+          {"^", x}, {_, grid} -> {{{x, y}, @up}, grid}
+          {"#", x}, {guard, grid} -> {guard, MapSet.put(grid, {x, y})}
+          {_, _}, acc -> acc
+        end)
+      end)
+
+    {guard, {grid, w, h}}
+  end
 end
