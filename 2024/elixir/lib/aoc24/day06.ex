@@ -5,7 +5,7 @@ defmodule Aoc24.Day06 do
 
     guard
     |> route(grid, w, h)
-    |> Enum.reduce(MapSet.new(), fn {pos, _dir}, acc -> MapSet.put(acc, pos) end)
+    |> Stream.uniq_by(fn {pos, _dir} -> pos end)
     |> Enum.count()
   end
 
@@ -13,14 +13,13 @@ defmodule Aoc24.Day06 do
   def part2(input) do
     {guard, {grid, w, h}} = parse(input)
 
-    for x <- 0..(w - 1), y <- 0..(h - 1), !MapSet.member?(grid, {x, y}), reduce: 0 do
-      count ->
-        if loop?(route(guard, MapSet.put(grid, {x, y}), w, h)) do
-          count + 1
-        else
-          count
-        end
-    end
+    guard
+    |> route(grid, w, h)
+    |> Stream.uniq_by(fn {pos, _dir} -> pos end)
+    |> Stream.filter(fn {pos, _dir} ->
+      loop?(route(guard, MapSet.put(grid, pos), w, h))
+    end)
+    |> Enum.count()
   end
 
   @left {-1, 0}
