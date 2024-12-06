@@ -1,18 +1,28 @@
 defmodule Aoc24.Day05 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
-    {rules, rest} = parse_rules(input, MapSet.new())
+    {rules, updates} = parse(input)
 
-    rest
-    |> parse_updates()
+    updates
     |> Enum.filter(&correct_order?(&1, rules))
     |> Enum.map(&Enum.at(&1, div(length(&1), 2)))
     |> Enum.sum()
   end
 
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    {rules, updates} = parse(input)
+
+    updates
+    |> Enum.reject(&correct_order?(&1, rules))
+    |> Enum.map(&sort(&1, rules))
+    |> Enum.map(&Enum.at(&1, div(length(&1), 2)))
+    |> Enum.sum()
+  end
+
+  defp parse(input) do
+    {rules, rest} = parse_rules(input, MapSet.new())
+    {rules, parse_updates(rest)}
   end
 
   defp parse_rules(<<"\n", rest::binary>>, rules), do: {rules, rest}
@@ -37,11 +47,30 @@ defmodule Aoc24.Day05 do
 
   defp correct_order?([_], _rules), do: true
 
-  defp correct_order?([h | t], rules) do
-    if Enum.all?(t, &(!MapSet.member?(rules, {&1, h}))) do
-      correct_order?(t, rules)
+  defp correct_order?([page | pages], rules) do
+    if Enum.all?(pages, &(!MapSet.member?(rules, {&1, page}))) do
+      correct_order?(pages, rules)
     else
       false
+    end
+  end
+
+  defp sort(pages, rules, acc \\ [])
+
+  defp sort([], _, acc), do: acc
+
+  defp sort(pages, rules, acc) do
+    {last_page, pages} = find_last(pages, rules)
+    sort(pages, rules, [last_page | acc])
+  end
+
+  defp find_last(pages, rules, not_last \\ [])
+
+  defp find_last([page | pages], rules, not_last) do
+    if Enum.any?(pages, &MapSet.member?(rules, {&1, page})) do
+      find_last(pages, rules, [page | not_last])
+    else
+      {page, not_last ++ pages}
     end
   end
 end
