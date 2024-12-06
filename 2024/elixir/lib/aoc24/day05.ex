@@ -15,7 +15,7 @@ defmodule Aoc24.Day05 do
 
     updates
     |> Enum.reject(&correct_order?(&1, rules))
-    |> Enum.map(&sort(&1, rules))
+    |> Enum.map(&sort(&1, rules, []))
     |> Enum.map(&Enum.at(&1, div(length(&1), 2)))
     |> Enum.sum()
   end
@@ -48,26 +48,24 @@ defmodule Aoc24.Day05 do
   defp correct_order?([_], _rules), do: true
 
   defp correct_order?([page | pages], rules) do
-    if Enum.all?(pages, &(!MapSet.member?(rules, {&1, page}))) do
+    if Enum.all?(pages, &correct?(page, &1, rules)) do
       correct_order?(pages, rules)
     else
       false
     end
   end
 
-  defp sort(pages, rules, acc \\ [])
+  defp correct?(page1, page2, rules), do: !MapSet.member?(rules, {page2, page1})
 
   defp sort([], _, acc), do: acc
 
   defp sort(pages, rules, acc) do
-    {last_page, pages} = find_last(pages, rules)
+    {last_page, pages} = find_last(pages, rules, [])
     sort(pages, rules, [last_page | acc])
   end
 
-  defp find_last(pages, rules, not_last \\ [])
-
   defp find_last([page | pages], rules, not_last) do
-    if Enum.any?(pages, &MapSet.member?(rules, {&1, page})) do
+    if Enum.any?(pages, &(!correct?(page, &1, rules))) do
       find_last(pages, rules, [page | not_last])
     else
       {page, not_last ++ pages}
