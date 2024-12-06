@@ -17,7 +17,7 @@ defmodule Aoc24.Day06 do
     |> route(grid, w, h)
     |> Stream.uniq_by(fn {pos, _dir} -> pos end)
     |> Stream.filter(fn {pos, _dir} ->
-      loop?(route(guard, MapSet.put(grid, pos), w, h))
+      guard |> route(MapSet.put(grid, pos), w, h) |> loop?()
     end)
     |> Enum.count()
   end
