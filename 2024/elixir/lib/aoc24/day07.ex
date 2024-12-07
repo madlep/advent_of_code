@@ -8,7 +8,7 @@ defmodule Aoc24.Day07 do
   defp run(input, ops) do
     input
     |> parse()
-    |> Enum.filter(fn {expected, [num | nums]} -> valid?(expected, nums, ops, num) end)
+    |> Enum.filter(fn {expected, [n | ns]} -> valid?(expected, ns, ops, n) end)
     |> Enum.map(&elem(&1, 0))
     |> Enum.sum()
   end
@@ -17,8 +17,8 @@ defmodule Aoc24.Day07 do
 
   defp valid?(expected, _, _ops, acc) when acc > expected, do: false
 
-  defp valid?(expected, [num | nums], ops, acc) do
-    Enum.any?(ops, &valid?(expected, nums, ops, &1.(acc, num)))
+  defp valid?(expected, [n | ns], ops, acc) do
+    Enum.any?(ops, &valid?(expected, ns, ops, &1.(acc, n)))
   end
 
   defp n1 ||| n2, do: n1 * 10 ** ((:math.log10(n2) |> floor()) + 1) + n2
