@@ -13,21 +13,6 @@ defmodule Aoc24.Day03 do
     |> Enum.sum()
   end
 
-  defp parse(<<>>, acc, _enabled, _use_enabled), do: acc
-
-  defp parse("don't()" <> rest, acc, true, :use), do: parse(rest, acc, false, :use)
-
-  defp parse(line, acc, true, use_enabled) do
-    case mul(line) do
-      {:ok, n, rest} -> parse(rest, [n | acc], true, use_enabled)
-      {:error, rest} -> parse(rest, acc, true, use_enabled)
-    end
-  end
-
-  defp parse("do()" <> rest, acc, false, :use), do: parse(rest, acc, true, :use)
-
-  defp parse(<<_::utf8, rest::binary>>, acc, false, :use), do: parse(rest, acc, false, :use)
-
   defp mul(line) do
     with {:ok, rest} <- string("mul(", line),
          {:ok, n1, rest} <- digit(rest),
@@ -51,4 +36,19 @@ defmodule Aoc24.Day03 do
       :error -> {:error, rest}
     end
   end
+
+  defp parse(<<>>, acc, _enabled, _use_enabled), do: acc
+
+  defp parse("don't()" <> rest, acc, true, :use), do: parse(rest, acc, false, :use)
+
+  defp parse(line, acc, true, use_enabled) do
+    case mul(line) do
+      {:ok, n, rest} -> parse(rest, [n | acc], true, use_enabled)
+      {:error, rest} -> parse(rest, acc, true, use_enabled)
+    end
+  end
+
+  defp parse("do()" <> rest, acc, false, :use), do: parse(rest, acc, true, :use)
+
+  defp parse(<<_::utf8, rest::binary>>, acc, false, :use), do: parse(rest, acc, false, :use)
 end

@@ -22,8 +22,6 @@ defmodule Aoc24.Day02 do
     end)
   end
 
-  defp parse_report(line), do: line |> String.split() |> Enum.map(&String.to_integer/1)
-
   defp tolerated([r1, r2 | _]), do: if(r1 < r2, do: 1..3, else: -3..-1)
 
   defp safe?(reports), do: safe?(reports, tolerated(reports))
@@ -34,4 +32,6 @@ defmodule Aoc24.Day02 do
 
   defp perms([], _, acc), do: Enum.reverse(acc)
   defp perms([r | rs], rs2, acc), do: perms(rs, [r | rs2], [Enum.reverse(rs2) ++ rs | acc])
+
+  defp parse_report(line), do: line |> String.split() |> Enum.map(&String.to_integer/1)
 end

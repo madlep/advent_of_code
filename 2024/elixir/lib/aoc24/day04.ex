@@ -31,18 +31,6 @@ defmodule Aoc24.Day04 do
     end
   end
 
-  defp parse(input) do
-    grid =
-      input
-      |> String.split("\n", trim: true)
-      |> Enum.map(&(&1 |> String.graphemes() |> List.to_tuple()))
-      |> List.to_tuple()
-
-    width = tuple_size(elem(grid, 0))
-    height = tuple_size(grid)
-    {grid, 0..(width - 1), 0..(height - 1)}
-  end
-
   defp at(g, x, y), do: g |> elem(y) |> elem(x)
 
   defp xmas?(g, x, y, dx, dy) do
@@ -54,5 +42,17 @@ defmodule Aoc24.Day04 do
 
     [at(g, x - 1, y - 1), at(g, x + 1, y + 1)] in corners &&
       [at(g, x - 1, y + 1), at(g, x + 1, y - 1)] in corners
+  end
+
+  defp parse(input) do
+    grid =
+      input
+      |> String.split("\n", trim: true)
+      |> Enum.map(&(&1 |> String.graphemes() |> List.to_tuple()))
+      |> List.to_tuple()
+
+    width = tuple_size(elem(grid, 0))
+    height = tuple_size(grid)
+    {grid, 0..(width - 1), 0..(height - 1)}
   end
 end
