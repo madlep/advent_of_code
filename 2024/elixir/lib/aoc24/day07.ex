@@ -1,60 +1,27 @@
 defmodule Aoc24.Day07 do
   @spec part1(String.t()) :: integer()
-  def part1(input) do
-    input
-    |> parse()
-    |> Enum.filter(fn {expected, [num | nums]} -> valid?(expected, nums, num) end)
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.sum()
-  end
+  def part1(input), do: run(input, [&Kernel.+/2, &Kernel.*/2])
 
   @spec part2(String.t()) :: integer()
-  def part2(input) do
+  def part2(input), do: run(input, [&Kernel.+/2, &Kernel.*/2, &|||/2])
+
+  defp run(input, ops) do
     input
     |> parse()
-    |> Enum.filter(fn {expected, [num | nums]} -> valid2?(expected, nums, num) end)
+    |> Enum.filter(fn {expected, [num | nums]} -> valid?(expected, nums, ops, num) end)
     |> Enum.map(&elem(&1, 0))
     |> Enum.sum()
   end
 
-  defp valid?(expected, [], expected) do
-    true
+  defp valid?(expected, [], _ops, acc), do: expected == acc
+
+  defp valid?(expected, _, _ops, acc) when acc > expected, do: false
+
+  defp valid?(expected, [num | nums], ops, acc) do
+    Enum.any?(ops, &valid?(expected, nums, ops, &1.(acc, num)))
   end
 
-  defp valid?(expected, [], acc) when expected != acc do
-    false
-  end
-
-  defp valid?(expected, _, acc) when acc > expected do
-    false
-  end
-
-  defp valid?(expected, [num | nums], acc) do
-    valid?(expected, nums, acc * num) ||
-      valid?(expected, nums, acc + num)
-  end
-
-  defp valid2?(expected, [], expected) do
-    true
-  end
-
-  defp valid2?(expected, [], acc) when expected != acc do
-    false
-  end
-
-  defp valid2?(expected, _, acc) when acc > expected do
-    false
-  end
-
-  defp valid2?(expected, [num | nums], acc) do
-    valid2?(expected, nums, acc * num) ||
-      valid2?(expected, nums, acc + num) ||
-      valid2?(expected, nums, acc ||| num)
-  end
-
-  def n1 ||| n2 do
-    n1 * 10 ** ((:math.log10(n2) |> floor()) + 1) + n2
-  end
+  defp n1 ||| n2, do: n1 * 10 ** ((:math.log10(n2) |> floor()) + 1) + n2
 
   defp parse(input) do
     input
