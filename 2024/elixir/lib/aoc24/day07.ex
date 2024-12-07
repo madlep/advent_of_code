@@ -1,9 +1,9 @@
 defmodule Aoc24.Day07 do
   @spec part1(String.t()) :: integer()
-  def part1(input), do: run(input, [&Kernel.+/2, &Kernel.*/2])
+  def part1(input), do: run(input, [&+/2, &*/2])
 
   @spec part2(String.t()) :: integer()
-  def part2(input), do: run(input, [&Kernel.+/2, &Kernel.*/2, &|||/2])
+  def part2(input), do: run(input, [&+/2, &*/2, &|||/2])
 
   defp run(input, ops) do
     input
