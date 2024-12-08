@@ -52,8 +52,7 @@ defmodule Aoc24.Parse do
   @spec sparse_grid(Enumerable.t(String.t()), opts :: [sparse_grid_opt(v, sparse_grid_acc)]) ::
           {Sparse.t(v), sparse_grid_acc}
         when v: var, sparse_grid_acc: var
-
-  def sparse_grid(input, opts) do
+  def sparse_grid(input, opts \\ []) do
     empty = opts[:empty] || ["."]
 
     {f, initial_acc} = opts[:reduce_with] || {&default_sparse_grid_reducer/2, nil}
