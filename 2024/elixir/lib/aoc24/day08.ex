@@ -21,8 +21,20 @@ defmodule Aoc24.Day08 do
   end
 
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    {grid, freq_positions} = parse(input)
+
+    freq_positions
+    |> Enum.flat_map(fn {_freq, positions} ->
+      positions
+      |> pairs()
+      |> Enum.flat_map(fn {p1, p2} ->
+        delta = sub_positions(p1, p2)
+        antinodes(p1, delta, grid, [p1], harmonics: true)
+      end)
+    end)
+    |> Enum.uniq()
+    |> Enum.count()
   end
 
   defp pairs(xs) do
@@ -32,6 +44,26 @@ defmodule Aoc24.Day08 do
       {_, xs_no_x} = List.pop_at(xs, i)
       xs_no_x |> Enum.map(&{x, &1})
     end)
+  end
+
+  defp antinodes(p1, dp, grid, _acc, harmonics: false) do
+    p2 = add_positions(p1, dp)
+
+    if Sparse.contains?(grid, p2) do
+      [p2]
+    else
+      []
+    end
+  end
+
+  defp antinodes(p1, dp, grid, acc, harmonics: true) do
+    p2 = add_positions(p1, dp)
+
+    if Sparse.contains?(grid, p2) do
+      antinodes(p2, dp, grid, [p2 | acc], harmonics: true)
+    else
+      acc
+    end
   end
 
   defp sub_positions({x1, y1}, {x2, y2}), do: {x1 - x2, y1 - y2}
