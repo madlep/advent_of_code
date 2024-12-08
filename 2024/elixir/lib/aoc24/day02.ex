@@ -1,25 +1,18 @@
 defmodule Aoc24.Day02 do
+  import Aoc24.Parse
+
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
-    |> String.split("\n", trim: true)
-    |> Enum.count(fn line ->
-      line
-      |> parse_report()
-      |> safe?()
-    end)
+    |> parse()
+    |> Enum.count(&safe?/1)
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
     input
-    |> String.split("\n", trim: true)
-    |> Enum.count(fn line ->
-      line
-      |> parse_report()
-      |> tolerated_permutations()
-      |> Enum.any?(&safe?/1)
-    end)
+    |> parse()
+    |> Enum.count(fn report -> report |> tolerated_permutations() |> Enum.any?(&safe?/1) end)
   end
 
   defp tolerated([r1, r2 | _]), do: if(r1 < r2, do: 1..3, else: -3..-1)
@@ -33,5 +26,9 @@ defmodule Aoc24.Day02 do
   defp perms([], _, acc), do: Enum.reverse(acc)
   defp perms([r | rs], rs2, acc), do: perms(rs, [r | rs2], [Enum.reverse(rs2) ++ rs | acc])
 
-  defp parse_report(line), do: line |> String.split() |> Enum.map(&String.to_integer/1)
+  defp parse(input) do
+    input
+    |> lines()
+    |> Enum.map(&ints/1)
+  end
 end

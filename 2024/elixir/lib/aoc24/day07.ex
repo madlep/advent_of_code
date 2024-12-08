@@ -1,4 +1,6 @@
 defmodule Aoc24.Day07 do
+  import Aoc24.Parse
+
   @spec part1(String.t()) :: integer()
   def part1(input), do: run(input, [&+/2, &*/2])
 
@@ -25,12 +27,10 @@ defmodule Aoc24.Day07 do
 
   defp parse(input) do
     input
-    |> String.split("\n", trim: true)
+    |> lines()
     |> Enum.map(fn line ->
-      {expected, rest} = Integer.parse(line)
-      <<":", rest::binary>> = rest
-      nums = rest |> String.split(" ", trim: true) |> Enum.map(&String.to_integer/1)
-      {expected, nums}
+      {expected, rest} = int(line)
+      {expected, rest |> drop(":") |> ints()}
     end)
   end
 end

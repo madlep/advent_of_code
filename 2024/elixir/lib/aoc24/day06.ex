@@ -1,31 +1,35 @@
 defmodule Aoc24.Day06 do
+  import Aoc24.Parse
+
+  alias Aoc24.Grid.Sparse
+
   @spec part1(String.t()) :: integer()
   def part1(input) do
-    {guard, {grid, w, h}} = parse(input)
+    {guard, grid} = parse(input)
 
     guard
-    |> route(grid, w, h)
+    |> route(grid)
     |> Stream.uniq_by(fn {pos, _dir} -> pos end)
     |> Enum.count()
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
-    {guard, {grid, w, h}} = parse(input)
+    {guard, grid} = parse(input)
 
     guard
-    |> route(grid, w, h)
+    |> route(grid)
     |> Stream.uniq_by(fn {pos, _dir} -> pos end)
     |> Stream.filter(fn {pos, _dir} ->
-      guard |> route(MapSet.put(grid, pos), w, h) |> loop?()
+      guard |> route(Sparse.put(grid, pos, "#")) |> loop?()
     end)
     |> Enum.count()
   end
 
-  defp route(guard, grid, w, h) do
+  defp route(guard, grid) do
     guard
     |> Stream.iterate(&move(&1, grid))
-    |> Stream.take_while(fn {{x, y}, _dir} -> x in 0..(w - 1) && y in 0..(h - 1) end)
+    |> Stream.take_while(fn {pos, _dir} -> Sparse.contains?(grid, pos) end)
   end
 
   defp loop?(route) do
@@ -42,7 +46,7 @@ defmodule Aoc24.Day06 do
   defp move({{x, y} = pos, {dx, dy} = dir}, grid) do
     new_pos = {x + dx, y + dy}
 
-    if !MapSet.member?(grid, new_pos) do
+    if Sparse.at(grid, new_pos) != "#" do
       {new_pos, dir}
     else
       move({pos, turn(dir)}, grid)
@@ -60,27 +64,13 @@ defmodule Aoc24.Day06 do
   defp turn(@down), do: @left
 
   defp parse(input) do
-    lines =
-      input
-      |> String.split("\n", trim: true)
+    guard_reducer = fn
+      {position, "^"}, _acc -> {:discard, {position, @up}}
+      {_position, element}, acc -> {:keep, element, acc}
+    end
 
-    h = length(lines)
-    w = lines |> hd() |> byte_size()
+    {grid, guard} = sparse_grid(input, reduce_with: {guard_reducer, nil})
 
-    {guard, grid} =
-      lines
-      |> Enum.with_index()
-      |> Enum.reduce({nil, MapSet.new()}, fn {line, y}, acc ->
-        line
-        |> String.graphemes()
-        |> Enum.with_index()
-        |> Enum.reduce(acc, fn
-          {"^", x}, {_, grid} -> {{{x, y}, @up}, grid}
-          {"#", x}, {guard, grid} -> {guard, MapSet.put(grid, {x, y})}
-          {_, _}, acc -> acc
-        end)
-      end)
-
-    {guard, {grid, w, h}}
+    {guard, grid}
   end
 end

@@ -1,4 +1,6 @@
 defmodule Aoc24.Day05 do
+  import Aoc24.Parse
+
   @spec part1(String.t()) :: integer()
   def part1(input) do
     {rules, updates} = parse(input)
@@ -55,20 +57,17 @@ defmodule Aoc24.Day05 do
   defp parse_rules(<<"\n", rest::binary>>, rules), do: {rules, rest}
 
   defp parse_rules(input, rules) do
-    {n1, rest} = Integer.parse(input)
-    <<"|", rest::binary>> = rest
-    {n2, rest} = Integer.parse(rest)
-    <<"\n", rest::binary>> = rest
-    parse_rules(rest, MapSet.put(rules, {n1, n2}))
+    {n1, rest} = int(input)
+    {n2, rest} = rest |> drop("|") |> int()
+
+    rest
+    |> drop("\n")
+    |> parse_rules(MapSet.put(rules, {n1, n2}))
   end
 
   defp parse_updates(input) do
     input
-    |> String.split("\n", trim: true)
-    |> Enum.map(fn line ->
-      line
-      |> String.split(",")
-      |> Enum.map(&String.to_integer/1)
-    end)
+    |> lines()
+    |> Enum.map(&ints(&1, ","))
   end
 end

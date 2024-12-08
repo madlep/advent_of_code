@@ -1,4 +1,6 @@
 defmodule Aoc24.Day01 do
+  import Aoc24.Parse
+
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
@@ -16,11 +18,8 @@ defmodule Aoc24.Day01 do
 
   defp parse(input) do
     input
-    |> String.split("\n", trim: true)
-    |> Enum.map(fn line ->
-      [n1, n2] = line |> String.split(~r/\s+/, trim: true)
-      {String.to_integer(n1), String.to_integer(n2)}
-    end)
+    |> lines()
+    |> Enum.map(&(&1 |> ints() |> List.to_tuple()))
     |> Enum.unzip()
   end
 end
