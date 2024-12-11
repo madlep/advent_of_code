@@ -5,7 +5,7 @@ defmodule Aoc24.Day04 do
 
   @spec part1(String.t()) :: integer()
   def part1(input) do
-    grid = grid(input)
+    {grid, _} = grid(input)
 
     for x <- Dense.xs(grid),
         y <- Dense.ys(grid),
@@ -21,7 +21,7 @@ defmodule Aoc24.Day04 do
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
-    grid = grid(input)
+    {grid, _} = grid(input)
 
     for x <- Dense.xs(grid),
         y <- Dense.ys(grid),

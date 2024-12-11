@@ -18,7 +18,16 @@ defmodule Aoc24.Grid.Dense do
   def ys({_, _width, height}), do: 0..(height - 1)
 
   @spec at!(t(v), Grid.position()) :: v when v: var
-  def at!({contents, _, _}, {x, y}), do: contents |> elem(y) |> elem(x)
+  def at!({contents, width, height}, {x, y} = position) when in_bounds(position, width, height) do
+    contents |> elem(y) |> elem(x)
+  end
+
+  @spec at(t(v), Grid.position()) :: v when v: var
+  def at({contents, width, height}, {x, y} = position) when in_bounds(position, width, height) do
+    contents |> elem(y) |> elem(x)
+  end
+
+  def at(_, _), do: nil
 
   @spec contains?(t(_v), Grid.position()) :: boolean() when _v: var
   def contains?({_contents, w, h}, position) when in_bounds(position, w, h), do: true

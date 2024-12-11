@@ -24,13 +24,38 @@ defmodule Aoc24.Parse do
     String.split(str, "\n", trim: true)
   end
 
-  @spec grid(String.t()) :: Dense.t(_v) when _v: var
-  def grid(str) do
-    str
-    |> lines()
-    |> Enum.map(&(&1 |> String.graphemes() |> List.to_tuple()))
-    |> List.to_tuple()
-    |> Dense.new()
+  @type grid_reducer(v, acc) :: ({Grid.position(), String.t()}, acc ->
+                                   {:keep, element :: v, acc} | {:discard, acc})
+
+  @type grid_opt(v, acc) :: {:empty_value, term()} | {:reduce_with, {grid_reducer(v, acc), acc}}
+
+  @spec grid(String.t(), opts :: [grid_opt(v, acc)]) :: {Dense.t(v), acc} when v: var, acc: var
+  def grid(str, opts \\ []) do
+    empty_value = opts[:empty_value] || nil
+    {f, initial_acc} = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+
+    {tuples, new_acc} =
+      str
+      |> lines()
+      |> Enum.with_index()
+      |> Enum.map_reduce(initial_acc, fn {line, y}, acc ->
+        {lines, new_acc} =
+          line
+          |> String.graphemes()
+          |> Enum.with_index()
+          |> Enum.map_reduce(acc, fn {element, x}, acc2 ->
+            position = {x, y}
+
+            case f.({position, element}, acc2) do
+              {:keep, element2, new_acc} -> {element2, new_acc}
+              {:discard, new_acc} -> {empty_value, new_acc}
+            end
+          end)
+
+        {List.to_tuple(lines), new_acc}
+      end)
+
+    {tuples |> List.to_tuple() |> Dense.new(), new_acc}
   end
 
   @spec grid_lines_wh(Enumerable.t(String.t())) :: {width :: integer(), height :: integer()}
@@ -40,22 +65,17 @@ defmodule Aoc24.Parse do
     {width, height}
   end
 
-  @type sparse_grid_opt(v, sparse_grid_acc) ::
+  @type sparse_grid_opt(v, acc) ::
           {:empty, Enumerable.t(String.t())}
-          | {:reduce_with, {sparse_grid_reducer(v, sparse_grid_acc), sparse_grid_acc}}
+          | {:reduce_with, {grid_reducer(v, acc), acc}}
 
-  @type sparse_grid_reducer(v, sparse_grid_acc) :: ({Grid.position(), String.t()},
-                                                    sparse_grid_acc ->
-                                                      {:keep, element :: v, sparse_grid_acc}
-                                                      | {:discard, sparse_grid_acc})
-
-  @spec sparse_grid(Enumerable.t(String.t()), opts :: [sparse_grid_opt(v, sparse_grid_acc)]) ::
-          {Sparse.t(v), sparse_grid_acc}
-        when v: var, sparse_grid_acc: var
+  @spec sparse_grid(Enumerable.t(String.t()), opts :: [sparse_grid_opt(v, acc)]) ::
+          {Sparse.t(v), acc}
+        when v: var, acc: var
   def sparse_grid(input, opts \\ []) do
     empty = opts[:empty] || ["."]
 
-    {f, initial_acc} = opts[:reduce_with] || {&default_sparse_grid_reducer/2, nil}
+    {f, initial_acc} = opts[:reduce_with] || {&default_grid_reducer/2, nil}
 
     lines = lines(input)
 
@@ -87,5 +107,5 @@ defmodule Aoc24.Parse do
     end)
   end
 
-  defp default_sparse_grid_reducer({_position, element}, acc), do: {:keep, element, acc}
+  defp default_grid_reducer({_position, element}, acc), do: {:keep, element, acc}
 end
