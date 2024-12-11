@@ -28,8 +28,26 @@ defmodule Aoc24.Day10 do
   @neighbour_dirs [{-1, 0}, {0, -1}, {1, 0}, {0, 1}]
 
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    {map, _} =
+      grid(input,
+        reduce_with: {fn {_, element}, acc -> {:keep, String.to_integer(element), acc} end, nil}
+      )
+
+    {_, total_score} =
+      for x <- Dense.xs(map),
+          y <- Dense.ys(map),
+          reduce: {%{}, 0} do
+        {memo, total_score} ->
+          if Dense.at(map, {x, y}) == 0 do
+            memo = trails(memo, {x, y}, map)
+            {memo, total_score + memo[{x, y}]}
+          else
+            {memo, total_score}
+          end
+      end
+
+    total_score
   end
 
   defp peaks(memo, pos, _map) when is_map_key(memo, pos), do: memo
@@ -48,7 +66,28 @@ defmodule Aoc24.Day10 do
         |> Enum.filter(&(Dense.at(map, &1) == n + 1))
         |> Enum.reduce(Map.put(memo, pos, MapSet.new()), fn neighbour_pos, memo ->
           memo = peaks(memo, neighbour_pos, map)
-          Map.update!(memo, pos, fn old_memo -> MapSet.union(old_memo, memo[neighbour_pos]) end)
+          Map.update!(memo, pos, fn old_peaks -> MapSet.union(old_peaks, memo[neighbour_pos]) end)
+        end)
+    end
+  end
+
+  defp trails(memo, pos, _map) when is_map_key(memo, pos), do: memo
+
+  defp trails(memo, {x, y} = pos, map) do
+    case Dense.at(map, pos) do
+      nil ->
+        memo
+
+      9 ->
+        Map.put(memo, pos, 1)
+
+      n when n in 0..8 ->
+        @neighbour_dirs
+        |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
+        |> Enum.filter(&(Dense.at(map, &1) == n + 1))
+        |> Enum.reduce(Map.put(memo, pos, 0), fn neighbour_pos, memo ->
+          memo = trails(memo, neighbour_pos, map)
+          Map.update!(memo, pos, fn old_trails -> old_trails + memo[neighbour_pos] end)
         end)
     end
   end
