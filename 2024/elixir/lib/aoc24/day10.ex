@@ -13,25 +13,22 @@ defmodule Aoc24.Day10 do
   end
 
   defp run(input, empty, init, append, score) do
-    {map, _} =
-      grid(input,
-        reduce_with: {fn {_, element}, acc -> {:keep, String.to_integer(element), acc} end, nil}
-      )
+    map =
+      input
+      |> grid(reduce_with: {fn {_, v}, acc -> {:keep, int!(v), acc} end, nil})
+      |> elem(0)
 
-    {_, total_score} =
-      for x <- Dense.xs(map),
-          y <- Dense.ys(map),
-          reduce: {%{}, 0} do
-        {memo, total_score} ->
-          if Dense.at(map, {x, y}) == 0 do
-            memo = walk(memo, {x, y}, map, empty, init, append)
-            {memo, total_score + score.(memo[{x, y}])}
-          else
-            {memo, total_score}
-          end
+    map
+    |> Dense.positions()
+    |> Enum.reduce({%{}, 0}, fn {x, y}, {memo, total_score} ->
+      if Dense.at(map, {x, y}) == 0 do
+        memo = walk(memo, {x, y}, map, empty, init, append)
+        {memo, total_score + score.(memo[{x, y}])}
+      else
+        {memo, total_score}
       end
-
-    total_score
+    end)
+    |> elem(1)
   end
 
   @neighbour_dirs [{-1, 0}, {0, -1}, {1, 0}, {0, 1}]

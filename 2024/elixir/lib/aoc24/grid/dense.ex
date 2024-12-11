@@ -32,4 +32,7 @@ defmodule Aoc24.Grid.Dense do
   @spec contains?(t(_v), Grid.position()) :: boolean() when _v: var
   def contains?({_contents, w, h}, position) when in_bounds(position, w, h), do: true
   def contains?({_contents, _w_, _h}, _position), do: false
+
+  @spec positions(t(_v)) :: Enumerable.t({x :: integer(), y :: integer()}) when _v: var
+  def positions(grid), do: for(x <- xs(grid), y <- ys(grid), do: {x, y})
 end

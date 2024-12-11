@@ -12,6 +12,8 @@ defmodule Aoc24.Parse do
 
   defdelegate int(str), to: Integer, as: :parse
 
+  defdelegate int!(str), to: String, as: :to_integer
+
   @spec ints(String.t(), sep :: String.pattern() | Regex.t()) :: Enumerable.t(integer())
   def ints(str, sep \\ " ") do
     str
