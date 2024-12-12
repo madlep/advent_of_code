@@ -6,24 +6,20 @@ defmodule Aoc24.Day12 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
     input
-    |> grid()
-    |> elem(0)
     |> regions()
-    |> elem(0)
     |> Enum.reduce(0, &(&2 + area(&1) * perimeter(&1)))
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
     input
-    |> grid()
-    |> elem(0)
     |> regions()
-    |> elem(0)
     |> Enum.reduce(0, &(&2 + area(&1) * edges(&1)))
   end
 
-  defp regions(plot) do
+  defp regions(input) do
+    plot = input |> grid() |> elem(0)
+
     plot
     |> Grid.positions()
     |> Enum.reduce({[], MapSet.new()}, fn pos, {regions, used} ->
@@ -34,6 +30,7 @@ defmodule Aoc24.Day12 do
         {regions, used}
       end
     end)
+    |> elem(0)
   end
 
   defp expand(region, pos, plot, used) do
@@ -58,22 +55,22 @@ defmodule Aoc24.Day12 do
     end
   end
 
-  defp area(region) do
-    MapSet.size(region)
-  end
+  defp area(region), do: MapSet.size(region)
 
   defp perimeter(region) do
     region
-    |> edge_parts(Enum.at(region, 0), MapSet.new(), MapSet.new())
-    |> elem(1)
+    |> edge_parts()
     |> MapSet.size()
   end
 
   defp edges(region) do
     region
-    |> edge_parts(Enum.at(region, 0), MapSet.new(), MapSet.new())
-    |> elem(1)
+    |> edge_parts()
     |> combine_edge_parts()
+  end
+
+  defp edge_parts(region) do
+    edge_parts(region, Enum.at(region, 0), MapSet.new(), MapSet.new()) |> elem(1)
   end
 
   defp edge_parts(region, pos, checked, parts) do
@@ -99,9 +96,12 @@ defmodule Aoc24.Day12 do
   defp combine_edge_parts(_parts, nil, edge_count), do: edge_count
 
   defp combine_edge_parts(parts, part, edge_count) do
-    parts = MapSet.delete(parts, part)
-    parts = extend_edge(parts, part, &Position.rotate_left/1)
-    parts = extend_edge(parts, part, &Position.rotate_right/1)
+    parts =
+      parts
+      |> MapSet.delete(part)
+      |> extend_edge(part, &Position.rotate_left/1)
+      |> extend_edge(part, &Position.rotate_right/1)
+
     combine_edge_parts(parts, Enum.at(parts, 0), edge_count + 1)
   end
 
@@ -109,8 +109,9 @@ defmodule Aoc24.Day12 do
     maybe_extended_part = shift(part, rot)
 
     if MapSet.member?(parts, maybe_extended_part) do
-      parts = MapSet.delete(parts, maybe_extended_part)
-      extend_edge(parts, maybe_extended_part, rot)
+      parts
+      |> MapSet.delete(maybe_extended_part)
+      |> extend_edge(maybe_extended_part, rot)
     else
       parts
     end
