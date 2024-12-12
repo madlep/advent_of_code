@@ -1,6 +1,7 @@
 defmodule Aoc24.Day12 do
   import Aoc24.Parse
   alias Aoc24.Grid
+  alias Aoc24.Grid.Position
 
   @spec part1(String.t()) :: integer()
   def part1(input) do
@@ -13,8 +14,13 @@ defmodule Aoc24.Day12 do
   end
 
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    input
+    |> grid()
+    |> elem(0)
+    |> regions()
+    |> elem(0)
+    |> Enum.reduce(0, &(&2 + area(&1) * edges(&1)))
   end
 
   defp regions(plot) do
@@ -36,7 +42,7 @@ defmodule Aoc24.Day12 do
       used = MapSet.put(used, pos)
 
       pos
-      |> Grid.Position.neighbours()
+      |> Position.neighbours()
       |> Enum.reduce({region, used}, fn neighbour_pos, {region, used} ->
         plant = Grid.at(plot, pos)
         neighbour_plant = Grid.at(plot, neighbour_pos)
@@ -57,25 +63,65 @@ defmodule Aoc24.Day12 do
   end
 
   defp perimeter(region) do
-    {_checked, total} = do_perimeter(region, Enum.at(region, 0), MapSet.new(), 0)
-    total
+    region
+    |> edge_parts(Enum.at(region, 0), MapSet.new(), MapSet.new())
+    |> elem(1)
+    |> MapSet.size()
   end
 
-  defp do_perimeter(region, pos, checked, total) do
+  defp edges(region) do
+    region
+    |> edge_parts(Enum.at(region, 0), MapSet.new(), MapSet.new())
+    |> elem(1)
+    |> combine_edge_parts()
+  end
+
+  defp edge_parts(region, pos, checked, parts) do
     if !MapSet.member?(checked, pos) do
       checked = MapSet.put(checked, pos)
 
       pos
-      |> Grid.Position.neighbours()
-      |> Enum.reduce({checked, total}, fn neighbour_pos, {checked, total} ->
+      |> Position.neighbours()
+      |> Enum.reduce({checked, parts}, fn neighbour_pos, {checked, parts} ->
         if !MapSet.member?(region, neighbour_pos) do
-          {checked, total + 1}
+          {checked, MapSet.put(parts, {pos, neighbour_pos})}
         else
-          do_perimeter(region, neighbour_pos, checked, total)
+          edge_parts(region, neighbour_pos, checked, parts)
         end
       end)
     else
-      {checked, total}
+      {checked, parts}
     end
+  end
+
+  defp combine_edge_parts(parts), do: combine_edge_parts(parts, Enum.at(parts, 0), 0)
+
+  defp combine_edge_parts(_parts, nil, edge_count), do: edge_count
+
+  defp combine_edge_parts(parts, part, edge_count) do
+    parts = MapSet.delete(parts, part)
+    parts = extend_edge(parts, part, &Position.rotate_left/1)
+    parts = extend_edge(parts, part, &Position.rotate_right/1)
+    combine_edge_parts(parts, Enum.at(parts, 0), edge_count + 1)
+  end
+
+  defp extend_edge(parts, part, rot) do
+    maybe_extended_part = shift(part, rot)
+
+    if MapSet.member?(parts, maybe_extended_part) do
+      parts = MapSet.delete(parts, maybe_extended_part)
+      extend_edge(parts, maybe_extended_part, rot)
+    else
+      parts
+    end
+  end
+
+  def shift({plant, neighbour}, rot) do
+    delta =
+      plant
+      |> Position.dir(neighbour)
+      |> rot.()
+
+    {Position.move(plant, delta), Position.move(neighbour, delta)}
   end
 end

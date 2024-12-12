@@ -36,7 +36,31 @@ defmodule Aoc24.Day12Test do
       MMMISSJEEE
       """
 
-    {:ok, example1: example1, example2: example2, example3: example3}
+    example4 =
+      """
+      EEEEE
+      EXXXX
+      EEEEE
+      EXXXX
+      EEEEE
+      """
+
+    example5 =
+      """
+      AAAAAA
+      AAABBA
+      AAABBA
+      ABBAAA
+      ABBAAA
+      AAAAAA
+      """
+
+    {:ok,
+     example1: example1,
+     example2: example2,
+     example3: example3,
+     example4: example4,
+     example5: example5}
   end
 
   describe "part 1" do
@@ -54,9 +78,24 @@ defmodule Aoc24.Day12Test do
   end
 
   describe "part 2" do
-    @tag skip: "pending"
-    test "part 2", ctx do
-      assert Day12.part2(ctx.example) == :implement_me
+    test "part 2 example1", ctx do
+      assert Day12.part2(ctx.example1) == 80
+    end
+
+    test "part 2 example2", ctx do
+      assert Day12.part2(ctx.example2) == 436
+    end
+
+    test "part 2 example3", ctx do
+      assert Day12.part2(ctx.example3) == 1206
+    end
+
+    test "part 2 example4", ctx do
+      assert Day12.part2(ctx.example4) == 236
+    end
+
+    test "part 2 example5", ctx do
+      assert Day12.part2(ctx.example5) == 368
     end
   end
 end
