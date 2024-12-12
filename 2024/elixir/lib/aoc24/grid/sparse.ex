@@ -26,7 +26,7 @@ defmodule Aoc24.Grid.Sparse do
     g.contents[position]
   end
 
-  defimpl Aoc24.Gridded do
+  defimpl Aoc24.Grid.Gridded do
     defdelegate at(g, position), to: Aoc24.Grid.Sparse
     defdelegate at!(g, position), to: Aoc24.Grid.Sparse
     defdelegate put(g, position, element), to: Aoc24.Grid.Sparse

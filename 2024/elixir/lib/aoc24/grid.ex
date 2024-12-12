@@ -1,5 +1,5 @@
 defmodule Aoc24.Grid do
-  alias Aoc24.Gridded
+  alias Aoc24.Grid.Gridded
 
   defmodule Position do
     @type t() :: {x :: integer(), y :: integer()}
@@ -16,8 +16,8 @@ defmodule Aoc24.Grid do
   defguard in_bounds(position, w, h)
            when elem(position, 0) in 0..(w - 1)//1 and elem(position, 1) in 0..(h - 1)//1
 
-  defdelegate at(g, position), to: Aoc24.Gridded
-  defdelegate at!(g, position), to: Aoc24.Gridded
+  defdelegate at(g, position), to: Gridded
+  defdelegate at!(g, position), to: Gridded
 
   @spec contains?(Gridded.t(_v), Aoc24.Position.t()) :: boolean() when _v: var
   def contains?(g, {x, y}), do: x in xs(g) && y in ys(g)

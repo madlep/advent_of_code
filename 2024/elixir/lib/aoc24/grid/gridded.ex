@@ -1,4 +1,4 @@
-defprotocol Aoc24.Gridded do
+defprotocol Aoc24.Grid.Gridded do
   @type t(_v) :: t()
 
   @spec at(t(v), Aoc24.Position.t()) :: v when v: var

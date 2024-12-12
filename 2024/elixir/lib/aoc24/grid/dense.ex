@@ -26,7 +26,7 @@ defmodule Aoc24.Grid.Dense do
 
   def at(_, _), do: nil
 
-  defimpl Aoc24.Gridded do
+  defimpl Aoc24.Grid.Gridded do
     defdelegate at(g, position), to: Aoc24.Grid.Dense
     defdelegate at!(g, position), to: Aoc24.Grid.Dense
     def put(_g, _position, _element), do: raise("not supported for read only dense grids")
