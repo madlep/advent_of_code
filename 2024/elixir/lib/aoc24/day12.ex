@@ -7,14 +7,16 @@ defmodule Aoc24.Day12 do
   def part1(input) do
     input
     |> regions()
-    |> Enum.reduce(0, &(&2 + area(&1) * perimeter(&1)))
+    |> Enum.map(&(area(&1) * perimeter(&1)))
+    |> Enum.sum()
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
     input
     |> regions()
-    |> Enum.reduce(0, &(&2 + area(&1) * edges(&1)))
+    |> Enum.map(&(area(&1) * edges(&1)))
+    |> Enum.sum()
   end
 
   defp regions(input) do
