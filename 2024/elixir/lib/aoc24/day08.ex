@@ -1,6 +1,6 @@
 defmodule Aoc24.Day08 do
   import Aoc24.Parse
-  alias Aoc24.Grid.Sparse
+  alias Aoc24.Grid
 
   @spec part1(String.t()) :: integer()
   def part1(input), do: run(input, false)
@@ -41,7 +41,7 @@ defmodule Aoc24.Day08 do
   defp antinodes(p1, dp, grid, acc, harmonics) do
     p2 = add_positions(p1, dp)
 
-    if Sparse.contains?(grid, p2) do
+    if Grid.contains?(grid, p2) do
       if harmonics do
         antinodes(p2, dp, grid, [p2 | acc], harmonics)
       else

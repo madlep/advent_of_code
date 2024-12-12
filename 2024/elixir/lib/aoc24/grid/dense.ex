@@ -1,38 +1,36 @@
 defmodule Aoc24.Grid.Dense do
-  import Aoc24.Grid
+  import Aoc24.Grid, only: [in_bounds: 3]
 
-  @opaque t(_v) :: {contents :: tuple(), width :: integer, height :: integer}
+  @enforce_keys [:contents, :w, :h]
+  defstruct [:contents, :w, :h]
+
+  @opaque t(_v) :: %__MODULE__{contents: tuple(), w: integer(), h: integer()}
 
   @spec new(tuple()) :: t(_v) when _v: var
   def new(contents) do
-    width = tuple_size(elem(contents, 0))
-    height = tuple_size(contents)
+    w = tuple_size(elem(contents, 0))
+    h = tuple_size(contents)
 
-    {contents, width, height}
+    %__MODULE__{contents: contents, w: w, h: h}
   end
 
-  @spec xs(t(_v)) :: Range.t(integer()) when _v: var
-  def xs({_, width, _height}), do: 0..(width - 1)
-
-  @spec ys(t(_v)) :: Range.t(integer()) when _v: var
-  def ys({_, _width, height}), do: 0..(height - 1)
-
   @spec at!(t(v), Grid.position()) :: v when v: var
-  def at!({contents, width, height}, {x, y} = position) when in_bounds(position, width, height) do
-    contents |> elem(y) |> elem(x)
+  def at!(%__MODULE__{w: w, h: h} = g, {x, y} = position) when in_bounds(position, w, h) do
+    g.contents |> elem(y) |> elem(x)
   end
 
   @spec at(t(v), Grid.position()) :: v when v: var
-  def at({contents, width, height}, {x, y} = position) when in_bounds(position, width, height) do
-    contents |> elem(y) |> elem(x)
+  def at(%__MODULE__{w: w, h: h} = g, {x, y} = position) when in_bounds(position, w, h) do
+    g.contents |> elem(y) |> elem(x)
   end
 
   def at(_, _), do: nil
 
-  @spec contains?(t(_v), Grid.position()) :: boolean() when _v: var
-  def contains?({_contents, w, h}, position) when in_bounds(position, w, h), do: true
-  def contains?({_contents, _w_, _h}, _position), do: false
-
-  @spec positions(t(_v)) :: Enumerable.t({x :: integer(), y :: integer()}) when _v: var
-  def positions(grid), do: for(x <- xs(grid), y <- ys(grid), do: {x, y})
+  defimpl Aoc24.Gridded do
+    defdelegate at(g, position), to: Aoc24.Grid.Dense
+    defdelegate at!(g, position), to: Aoc24.Grid.Dense
+    def put(_g, _position, _element), do: raise("not supported for read only dense grids")
+    def height(%Aoc24.Grid.Dense{h: h}), do: h
+    def width(%Aoc24.Grid.Dense{w: w}), do: w
+  end
 end

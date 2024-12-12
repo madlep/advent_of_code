@@ -1,6 +1,6 @@
 defmodule Aoc24.Day12 do
   import Aoc24.Parse
-  alias Aoc24.Grid.Dense
+  alias Aoc24.Grid
 
   @spec part1(String.t()) :: integer()
   def part1(input) do
@@ -19,7 +19,7 @@ defmodule Aoc24.Day12 do
 
   defp regions(plot) do
     plot
-    |> Dense.positions()
+    |> Grid.positions()
     |> Enum.reduce({[], MapSet.new()}, fn pos, {regions, used} ->
       if !MapSet.member?(used, pos) do
         {region, used} = expand(MapSet.new(), pos, plot, used)
@@ -40,8 +40,8 @@ defmodule Aoc24.Day12 do
       @neighbour_dirs
       |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
       |> Enum.reduce({region, used}, fn neighbour_pos, {region, used} ->
-        plant = Dense.at(plot, pos)
-        neighbour_plant = Dense.at(plot, neighbour_pos)
+        plant = Grid.at(plot, pos)
+        neighbour_plant = Grid.at(plot, neighbour_pos)
 
         if plant == neighbour_plant do
           expand(region, neighbour_pos, plot, used)

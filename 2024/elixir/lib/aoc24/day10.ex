@@ -1,6 +1,6 @@
 defmodule Aoc24.Day10 do
   import Aoc24.Parse
-  alias Aoc24.Grid.Dense
+  alias Aoc24.Grid
 
   @spec part1(String.t()) :: integer()
   def part1(input) do
@@ -19,9 +19,9 @@ defmodule Aoc24.Day10 do
       |> elem(0)
 
     map
-    |> Dense.positions()
+    |> Grid.positions()
     |> Enum.reduce({%{}, 0}, fn {x, y}, {memo, total_score} ->
-      if Dense.at(map, {x, y}) == 0 do
+      if Grid.at(map, {x, y}) == 0 do
         memo = walk(memo, {x, y}, map, empty, init, append)
         {memo, total_score + score.(memo[{x, y}])}
       else
@@ -36,7 +36,7 @@ defmodule Aoc24.Day10 do
   defp walk(memo, pos, _map, _empty, _init, _append) when is_map_key(memo, pos), do: memo
 
   defp walk(memo, {x, y} = pos, map, empty, init, append) do
-    case Dense.at(map, pos) do
+    case Grid.at(map, pos) do
       nil ->
         memo
 
@@ -46,7 +46,7 @@ defmodule Aoc24.Day10 do
       n when n in 0..8 ->
         @neighbour_dirs
         |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
-        |> Enum.filter(&(Dense.at(map, &1) == n + 1))
+        |> Enum.filter(&(Grid.at(map, &1) == n + 1))
         |> Enum.reduce(Map.put(memo, pos, empty), fn neighbour_pos, memo ->
           memo = walk(memo, neighbour_pos, map, empty, init, append)
           Map.update!(memo, pos, fn old_walk -> append.(old_walk, memo[neighbour_pos]) end)

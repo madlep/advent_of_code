@@ -86,7 +86,8 @@ defmodule Aoc24.Parse do
 
     lines = lines(input)
 
-    initial_grid = Sparse.new(grid_lines_wh(lines))
+    {w, h} = grid_lines_wh(lines)
+    initial_grid = Sparse.new(w, h)
 
     lines
     |> Enum.with_index()

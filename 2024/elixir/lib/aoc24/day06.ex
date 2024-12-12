@@ -1,7 +1,7 @@
 defmodule Aoc24.Day06 do
   import Aoc24.Parse
 
-  alias Aoc24.Grid.Sparse
+  alias Aoc24.Grid
 
   @spec part1(String.t()) :: integer()
   def part1(input) do
@@ -21,7 +21,7 @@ defmodule Aoc24.Day06 do
     |> route(grid)
     |> Stream.uniq_by(fn {pos, _dir} -> pos end)
     |> Stream.filter(fn {pos, _dir} ->
-      guard |> route(Sparse.put(grid, pos, "#")) |> loop?()
+      guard |> route(Grid.put(grid, pos, "#")) |> loop?()
     end)
     |> Enum.count()
   end
@@ -29,7 +29,7 @@ defmodule Aoc24.Day06 do
   defp route(guard, grid) do
     guard
     |> Stream.iterate(&move(&1, grid))
-    |> Stream.take_while(fn {pos, _dir} -> Sparse.contains?(grid, pos) end)
+    |> Stream.take_while(fn {pos, _dir} -> Grid.contains?(grid, pos) end)
   end
 
   defp loop?(route) do
@@ -46,7 +46,7 @@ defmodule Aoc24.Day06 do
   defp move({{x, y} = pos, {dx, dy} = dir}, grid) do
     new_pos = {x + dx, y + dy}
 
-    if Sparse.at(grid, new_pos) != "#" do
+    if Grid.at(grid, new_pos) != "#" do
       {new_pos, dir}
     else
       move({pos, turn(dir)}, grid)
