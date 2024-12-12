@@ -10,6 +10,11 @@ defmodule Aoc24.Parse do
     rest
   end
 
+  def line!(str) do
+    [line] = lines(str)
+    line
+  end
+
   defdelegate int(str), to: Integer, as: :parse
 
   defdelegate int!(str), to: String, as: :to_integer
