@@ -117,7 +117,7 @@ defmodule Aoc24.Day12 do
     end
   end
 
-  def shift({plant, neighbour}, rot) do
+  defp shift({plant, neighbour}, rot) do
     delta =
       plant
       |> Position.dir(neighbour)
