@@ -31,11 +31,9 @@ defmodule Aoc24.Day10 do
     |> elem(1)
   end
 
-  @neighbour_dirs [{-1, 0}, {0, -1}, {1, 0}, {0, 1}]
-
   defp walk(memo, pos, _map, _empty, _init, _append) when is_map_key(memo, pos), do: memo
 
-  defp walk(memo, {x, y} = pos, map, empty, init, append) do
+  defp walk(memo, pos, map, empty, init, append) do
     case Grid.at(map, pos) do
       nil ->
         memo
@@ -44,8 +42,8 @@ defmodule Aoc24.Day10 do
         Map.put(memo, pos, init.(pos))
 
       n when n in 0..8 ->
-        @neighbour_dirs
-        |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
+        pos
+        |> Grid.Position.neighbours()
         |> Enum.filter(&(Grid.at(map, &1) == n + 1))
         |> Enum.reduce(Map.put(memo, pos, empty), fn neighbour_pos, memo ->
           memo = walk(memo, neighbour_pos, map, empty, init, append)

@@ -30,15 +30,13 @@ defmodule Aoc24.Day12 do
     end)
   end
 
-  @neighbour_dirs [{-1, 0}, {0, -1}, {1, 0}, {0, 1}]
-
-  defp expand(region, {x, y} = pos, plot, used) do
+  defp expand(region, pos, plot, used) do
     if !MapSet.member?(used, pos) && !MapSet.member?(region, pos) do
       region = MapSet.put(region, pos)
       used = MapSet.put(used, pos)
 
-      @neighbour_dirs
-      |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
+      pos
+      |> Grid.Position.neighbours()
       |> Enum.reduce({region, used}, fn neighbour_pos, {region, used} ->
         plant = Grid.at(plot, pos)
         neighbour_plant = Grid.at(plot, neighbour_pos)
@@ -63,12 +61,12 @@ defmodule Aoc24.Day12 do
     total
   end
 
-  defp do_perimeter(region, {x, y} = pos, checked, total) do
+  defp do_perimeter(region, pos, checked, total) do
     if !MapSet.member?(checked, pos) do
       checked = MapSet.put(checked, pos)
 
-      @neighbour_dirs
-      |> Enum.map(fn {dx, dy} -> {x + dx, y + dy} end)
+      pos
+      |> Grid.Position.neighbours()
       |> Enum.reduce({checked, total}, fn neighbour_pos, {checked, total} ->
         if !MapSet.member?(region, neighbour_pos) do
           {checked, total + 1}
