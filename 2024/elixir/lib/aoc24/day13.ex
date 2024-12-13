@@ -5,16 +5,23 @@ defmodule Aoc24.Day13 do
   def part1(input) do
     input
     |> parse_buttons([])
-    |> Enum.map(&presses/1)
+    |> Enum.map(&presses(&1, 0))
     |> Enum.sum()
   end
 
+  @conversion_error 10_000_000_000_000
+
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    input
+    |> parse_buttons([])
+    |> Enum.map(&presses(&1, @conversion_error))
+    |> Enum.sum()
   end
 
-  defp presses({ax, ay, bx, by, prizex, prizey}) do
+  defp presses({ax, ay, bx, by, prizex, prizey}, conversion_error) do
+    prizex = prizex + conversion_error
+    prizey = prizey + conversion_error
     a = round((bx * -prizey - by * -prizex) / (ax * by - ay * bx))
     b = round((ay * -prizex - ax * -prizey) / (ax * by - ay * bx))
 
