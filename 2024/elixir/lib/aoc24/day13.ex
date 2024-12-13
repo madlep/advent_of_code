@@ -2,20 +2,15 @@ defmodule Aoc24.Day13 do
   import Aoc24.Parse
 
   @spec part1(String.t()) :: integer()
-  def part1(input) do
-    input
-    |> parse_buttons([])
-    |> Enum.map(&presses(&1, 0))
-    |> Enum.sum()
-  end
-
-  @conversion_error 10_000_000_000_000
+  def part1(input), do: run(input, 0)
 
   @spec part2(String.t()) :: integer()
-  def part2(input) do
+  def part2(input), do: run(input, 10_000_000_000_000)
+
+  defp run(input, conversion_error) do
     input
     |> parse_buttons([])
-    |> Enum.map(&presses(&1, @conversion_error))
+    |> Enum.map(&presses(&1, conversion_error))
     |> Enum.sum()
   end
 
@@ -24,12 +19,7 @@ defmodule Aoc24.Day13 do
     prizey = prizey + conversion_error
     a = round((bx * -prizey - by * -prizex) / (ax * by - ay * bx))
     b = round((ay * -prizex - ax * -prizey) / (ax * by - ay * bx))
-
-    if a * ax + b * bx == prizex && a * ay + b * by == prizey do
-      a * 3 + b
-    else
-      0
-    end
+    if a * ax + b * bx == prizex && a * ay + b * by == prizey, do: a * 3 + b, else: 0
   end
 
   defp parse_buttons("", acc), do: Enum.reverse(acc)
