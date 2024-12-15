@@ -19,9 +19,22 @@ defmodule Aoc24.Day14 do
     |> Enum.reduce(&*/2)
   end
 
-  @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  @spec part2(String.t(), keyword()) :: integer()
+  def part2(input, opts \\ [w: 101, h: 103]) do
+    w = opts[:w]
+    h = opts[:h]
+
+    bots =
+      input
+      |> parse()
+
+    1..(w * h - 1)
+    |> Enum.map(fn i ->
+      bots_i = bots |> Enum.map(&move(&1, i, w, h))
+      {variance_xy(bots_i), i}
+    end)
+    |> Enum.min()
+    |> elem(1)
   end
 
   defp move({x, y, dx, dy}, n, w, h) do
@@ -38,6 +51,22 @@ defmodule Aoc24.Day14 do
   defp quadrant({x, y}, midw, midh) when x > midw and y < midh, do: 2
   defp quadrant({x, y}, midw, midh) when x < midw and y > midh, do: 3
   defp quadrant({x, y}, midw, midh) when x > midw and y > midh, do: 4
+
+  defp variance_xy(bots) do
+    n = length(bots)
+
+    {xs, ys} =
+      Enum.reduce(bots, {[], []}, fn {x, y}, {xs, ys} ->
+        {[x | xs], [y | ys]}
+      end)
+
+    variance(xs, n) + variance(ys, n)
+  end
+
+  defp variance(nums, n) do
+    mean = Enum.sum(nums) / n
+    Enum.sum(Enum.map(nums, fn num -> (num - mean) ** 2 end)) / n
+  end
 
   defp parse(input) do
     # p=0,4 v=3,-3
