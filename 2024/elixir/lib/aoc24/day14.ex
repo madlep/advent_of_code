@@ -44,12 +44,7 @@ defmodule Aoc24.Day14 do
 
   defp variance_xy(bots) do
     n = length(bots)
-
-    {xs, ys} =
-      Enum.reduce(bots, {[], []}, fn {x, y}, {xs, ys} ->
-        {[x | xs], [y | ys]}
-      end)
-
+    {xs, ys} = Enum.unzip(bots)
     variance(xs, n) + variance(ys, n)
   end
 

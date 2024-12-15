@@ -32,7 +32,7 @@ defmodule Aoc24.Day14Test do
 
   describe "part 2" do
     test "part 2", ctx do
-      assert Day14.part2(ctx.example, w: 11, h: 7) == :implement_me
+      assert Day14.part2(ctx.example, w: 11, h: 7) == 24
     end
   end
 end
