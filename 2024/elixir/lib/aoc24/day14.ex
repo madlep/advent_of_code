@@ -3,11 +3,8 @@ defmodule Aoc24.Day14 do
 
   @spec part1(String.t(), keyword()) :: integer()
   def part1(input, opts \\ [w: 101, h: 103]) do
-    w = opts[:w]
-    h = opts[:h]
-
-    midw = div(w, 2)
-    midh = div(h, 2)
+    {w, h} = {opts[:w], opts[:h]}
+    {midw, midh} = {div(w, 2), div(h, 2)}
 
     input
     |> parse()
@@ -21,18 +18,11 @@ defmodule Aoc24.Day14 do
 
   @spec part2(String.t(), keyword()) :: integer()
   def part2(input, opts \\ [w: 101, h: 103]) do
-    w = opts[:w]
-    h = opts[:h]
-
-    bots =
-      input
-      |> parse()
+    {w, h} = {opts[:w], opts[:h]}
+    bots = parse(input)
 
     1..(w * h - 1)
-    |> Enum.map(fn i ->
-      bots_i = bots |> Enum.map(&move(&1, i, w, h))
-      {variance_xy(bots_i), i}
-    end)
+    |> Enum.map(fn i -> {bots |> Enum.map(&move(&1, i, w, h)) |> variance_xy(), i} end)
     |> Enum.min()
     |> elem(1)
   end
