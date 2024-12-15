@@ -7,6 +7,9 @@ defprotocol Aoc24.Grid.Gridded do
   @spec at!(t(v), Aoc24.Position.t()) :: v when v: var
   def at!(g, position)
 
+  @spec delete(t(v), Aoc24.Position.t()) :: t(v) when v: var
+  def delete(g, position)
+
   @spec put(t(v), Grid.position(), v) :: t(v) when v: var
   def put(g, position, element)
 

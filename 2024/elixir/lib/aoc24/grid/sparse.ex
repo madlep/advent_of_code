@@ -26,9 +26,15 @@ defmodule Aoc24.Grid.Sparse do
     g.contents[position]
   end
 
+  @spec delete(t(v), Grid.position()) :: v when v: var
+  def delete(g, position) do
+    %__MODULE__{g | contents: Map.delete(g.contents, position)}
+  end
+
   defimpl Aoc24.Grid.Gridded do
     defdelegate at(g, position), to: Aoc24.Grid.Sparse
     defdelegate at!(g, position), to: Aoc24.Grid.Sparse
+    defdelegate delete(g, position), to: Aoc24.Grid.Sparse
     defdelegate put(g, position, element), to: Aoc24.Grid.Sparse
     def height(%Aoc24.Grid.Sparse{h: h}), do: h
     def width(%Aoc24.Grid.Sparse{w: w}), do: w

@@ -34,12 +34,21 @@ defmodule Aoc24.Parse do
   @type grid_reducer(v, acc) :: ({Grid.position(), String.t()}, acc ->
                                    {:keep, element :: v, acc} | {:discard, acc})
 
-  @type grid_opt(v, acc) :: {:empty_value, term()} | {:reduce_with, {grid_reducer(v, acc), acc}}
+  @type grid_opt(v, acc) ::
+          {:empty_value, term()}
+          | {:reduce_with, {grid_reducer(v, acc), acc}}
+          | {:reduce_with, grid_reducer(v, acc)}
 
   @spec grid(String.t(), opts :: [grid_opt(v, acc)]) :: {Dense.t(v), acc} when v: var, acc: var
   def grid(str, opts \\ []) do
     empty_value = opts[:empty_value] || nil
-    {f, initial_acc} = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+    reduce_with = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+
+    {f, initial_acc} =
+      case reduce_with do
+        {f, initial_acc} -> {f, initial_acc}
+        f when is_function(f) -> {f, nil}
+      end
 
     {tuples, new_acc} =
       str
@@ -72,17 +81,24 @@ defmodule Aoc24.Parse do
     {width, height}
   end
 
-  @type sparse_grid_opt(v, acc) ::
-          {:empty, Enumerable.t(String.t())}
-          | {:reduce_with, {grid_reducer(v, acc), acc}}
+  #  @type sparse_grid_opt(v, acc) ::
+  #          {:empty, Enumerable.t(String.t())}
+  #          | {:reduce_with, {grid_reducer(v, acc), acc}}
+  #          | {:reduce_with, grid_reducer(v, acc)}
 
-  @spec sparse_grid(Enumerable.t(String.t()), opts :: [sparse_grid_opt(v, acc)]) ::
+  @spec sparse_grid(Enumerable.t(String.t()), opts :: [grid_opt(v, acc)]) ::
           {Sparse.t(v), acc}
         when v: var, acc: var
   def sparse_grid(input, opts \\ []) do
     empty = opts[:empty] || ["."]
 
-    {f, initial_acc} = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+    reduce_with = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+
+    {f, initial_acc} =
+      case reduce_with do
+        {f, initial_acc} -> {f, initial_acc}
+        f when is_function(f) -> {f, nil}
+      end
 
     lines = lines(input)
 
