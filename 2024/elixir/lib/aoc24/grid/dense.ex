@@ -31,6 +31,7 @@ defmodule Aoc24.Grid.Dense do
     defdelegate at!(g, position), to: Aoc24.Grid.Dense
     def delete(_g, _position), do: raise("not supported for read only dense grids")
     def put(_g, _position, _element), do: raise("not supported for read only dense grids")
+    def put!(_g, _position, _element), do: raise("not supported for read only dense grids")
     def height(%Aoc24.Grid.Dense{h: h}), do: h
     def width(%Aoc24.Grid.Dense{w: w}), do: w
   end

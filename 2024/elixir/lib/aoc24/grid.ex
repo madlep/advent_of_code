@@ -20,6 +20,8 @@ defmodule Aoc24.Grid do
 
   defdelegate put(g, position, element), to: Gridded
 
+  defdelegate put!(g, position, element), to: Gridded
+
   @spec move(t(v), from :: Position.t(), to :: Position.t()) :: t(v) when v: var
   def move(g, from, to), do: g |> put(to, at!(g, from)) |> delete(from)
 
@@ -28,4 +30,19 @@ defmodule Aoc24.Grid do
 
   @spec ys(t(_v)) :: Range.t(integer()) when _v: var
   def ys(g), do: 0..(Gridded.height(g) - 1)
+
+  @spec print(t(_v)) :: String.t() when _v: var
+  def print(g) do
+    g
+    |> ys()
+    |> Enum.map(fn y ->
+      g
+      |> xs()
+      |> Enum.map(fn x ->
+        at(g, {x, y}) || " "
+      end)
+      |> Enum.join()
+    end)
+    |> Enum.join("\n")
+  end
 end

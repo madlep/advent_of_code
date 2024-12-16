@@ -12,7 +12,17 @@ defmodule Aoc24.Grid.Sparse do
   end
 
   @spec put(t(v), Grid.position(), v) :: t(v) when v: var
-  def put(%__MODULE__{w: w, h: h} = g, position, element) when in_bounds(position, w, h) do
+  def put(%__MODULE__{w: w, h: h} = g, {x, y} = position, element) do
+    %__MODULE__{
+      g
+      | contents: Map.put(g.contents, position, element),
+        w: max(w, x + 1),
+        h: max(h, y + 1)
+    }
+  end
+
+  @spec put!(t(v), Grid.position(), v) :: t(v) when v: var
+  def put!(%__MODULE__{w: w, h: h} = g, position, element) when in_bounds(position, w, h) do
     %__MODULE__{g | contents: Map.put(g.contents, position, element)}
   end
 
@@ -36,6 +46,7 @@ defmodule Aoc24.Grid.Sparse do
     defdelegate at!(g, position), to: Aoc24.Grid.Sparse
     defdelegate delete(g, position), to: Aoc24.Grid.Sparse
     defdelegate put(g, position, element), to: Aoc24.Grid.Sparse
+    defdelegate put!(g, position, element), to: Aoc24.Grid.Sparse
     def height(%Aoc24.Grid.Sparse{h: h}), do: h
     def width(%Aoc24.Grid.Sparse{w: w}), do: w
   end

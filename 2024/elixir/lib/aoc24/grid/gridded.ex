@@ -15,6 +15,9 @@ defprotocol Aoc24.Grid.Gridded do
   @spec put(t(v), Position.t(), v) :: t(v) when v: var
   def put(g, position, element)
 
+  @spec put!(t(v), Position.t(), v) :: t(v) when v: var
+  def put!(g, position, element)
+
   @spec height(t(_v)) :: integer() when _v: var
   def height(g)
 

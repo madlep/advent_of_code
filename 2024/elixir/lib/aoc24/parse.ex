@@ -36,12 +36,14 @@ defmodule Aoc24.Parse do
                                    | {:keep, element :: v, new_pos :: Grid.position(), acc}
                                    | {:discard, acc})
 
-  @type grid_opt(v, acc) ::
+  @type grid_opt(v, g, acc) ::
           {:empty_value, term()}
           | {:reduce, {grid_reducer(v, acc), acc}}
           | {:reduce, grid_reducer(v, acc)}
+          | {:reduce, {:raw, ({Position.t(), String.t()}, {g, acc} -> {g, acc}), acc}}
 
-  @spec grid(String.t(), opts :: [grid_opt(v, acc)]) :: {Dense.t(v), acc} when v: var, acc: var
+  @spec grid(String.t(), opts :: [grid_opt(v, acc, Dense.t())]) :: {Dense.t(v), acc}
+        when v: var, acc: var
   def grid(str, opts \\ []) do
     empty_value = opts[:empty_value] || nil
     reduce = opts[:reduce] || {&default_grid_reducer/2, nil}
@@ -84,19 +86,13 @@ defmodule Aoc24.Parse do
     {width, height}
   end
 
-  @spec sparse_grid(Enumerable.t(String.t()), opts :: [grid_opt(v, acc)]) ::
+  @spec sparse_grid(Enumerable.t(String.t()), opts :: [grid_opt(v, acc, Sparse.t())]) ::
           {Sparse.t(v), acc}
         when v: var, acc: var
   def sparse_grid(input, opts \\ []) do
-    empty = opts[:empty] || ["."]
+    empty = opts[:empty_value] || ["."]
 
-    reduce = opts[:reduce] || {&default_grid_reducer/2, nil}
-
-    {f, initial_acc} =
-      case reduce do
-        {f, initial_acc} -> {f, initial_acc}
-        f when is_function(f) -> {f, nil}
-      end
+    {f, initial_acc} = sparse_reducer(opts[:reduce])
 
     lines = lines(input)
 
@@ -113,24 +109,38 @@ defmodule Aoc24.Parse do
         {element, x}, {grid, acc} ->
           if element not in empty do
             position = {x, y}
-
-            case f.({position, element}, acc) do
-              {:keep, element2, new_acc} ->
-                new_grid = Sparse.put(grid, position, element2)
-                {new_grid, new_acc}
-
-              {:keep, element2, new_pos, new_acc} ->
-                new_grid = Sparse.put(grid, new_pos, element2)
-                {new_grid, new_acc}
-
-              {:discard, new_acc} ->
-                {grid, new_acc}
-            end
+            f.({position, element}, {grid, acc})
           else
             {grid, acc}
           end
       end)
     end)
+  end
+
+  # | {:reduce, {:raw, ({Position.t(), String.t()}, {g, acc} -> {g, acc})}}
+  defp sparse_reducer(nil) do
+    sparse_reducer({fn {_position, element}, acc -> {:keep, element, acc} end, nil})
+  end
+
+  defp sparse_reducer({:raw, f, initial_acc}), do: {f, initial_acc}
+
+  defp sparse_reducer(f) when is_function(f), do: sparse_reducer({f, nil})
+
+  defp sparse_reducer({f, initial_acc}) when is_function(f) do
+    {fn {position, element}, {grid, acc} ->
+       case f.({position, element}, acc) do
+         {:keep, element2, new_acc} ->
+           new_grid = Sparse.put(grid, position, element2)
+           {new_grid, new_acc}
+
+         {:keep, element2, new_pos, new_acc} ->
+           new_grid = Sparse.put(grid, new_pos, element2)
+           {new_grid, new_acc}
+
+         {:discard, new_acc} ->
+           {grid, new_acc}
+       end
+     end, initial_acc}
   end
 
   defp default_grid_reducer({_position, element}, acc), do: {:keep, element, acc}
