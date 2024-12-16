@@ -55,9 +55,8 @@ defmodule Aoc24.Day15Test do
   end
 
   describe "part 2" do
-    @tag skip: "pending"
     test "part 2", ctx do
-      assert Day15.part2(ctx.example) == :implement_me
+      assert Day15.part2(ctx.example1) == 9021
     end
   end
 end

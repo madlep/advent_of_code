@@ -15,7 +15,7 @@ defmodule Aoc24.Day10 do
   defp run(input, empty, init, append, score) do
     map =
       input
-      |> grid(reduce_with: {fn {_, v}, acc -> {:keep, int!(v), acc} end, nil})
+      |> grid(reduce: {fn {_, v}, acc -> {:keep, int!(v), acc} end, nil})
       |> elem(0)
 
     map

@@ -57,6 +57,6 @@ defmodule Aoc24.Day08 do
       {:keep, freq, Map.update(acc, freq, [pos], fn poss -> [pos | poss] end)}
     end
 
-    sparse_grid(input, reduce_with: {freq_reducer, %{}})
+    sparse_grid(input, reduce: {freq_reducer, %{}})
   end
 end

@@ -32,20 +32,22 @@ defmodule Aoc24.Parse do
   end
 
   @type grid_reducer(v, acc) :: ({Grid.position(), String.t()}, acc ->
-                                   {:keep, element :: v, acc} | {:discard, acc})
+                                   {:keep, element :: v, acc}
+                                   | {:keep, element :: v, new_pos :: Grid.position(), acc}
+                                   | {:discard, acc})
 
   @type grid_opt(v, acc) ::
           {:empty_value, term()}
-          | {:reduce_with, {grid_reducer(v, acc), acc}}
-          | {:reduce_with, grid_reducer(v, acc)}
+          | {:reduce, {grid_reducer(v, acc), acc}}
+          | {:reduce, grid_reducer(v, acc)}
 
   @spec grid(String.t(), opts :: [grid_opt(v, acc)]) :: {Dense.t(v), acc} when v: var, acc: var
   def grid(str, opts \\ []) do
     empty_value = opts[:empty_value] || nil
-    reduce_with = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+    reduce = opts[:reduce] || {&default_grid_reducer/2, nil}
 
     {f, initial_acc} =
-      case reduce_with do
+      case reduce do
         {f, initial_acc} -> {f, initial_acc}
         f when is_function(f) -> {f, nil}
       end
@@ -64,6 +66,7 @@ defmodule Aoc24.Parse do
 
             case f.({position, element}, acc2) do
               {:keep, element2, new_acc} -> {element2, new_acc}
+              {:keep, _element2, _new_pos, _new_acc} -> raise "not supported for dense grids"
               {:discard, new_acc} -> {empty_value, new_acc}
             end
           end)
@@ -81,21 +84,16 @@ defmodule Aoc24.Parse do
     {width, height}
   end
 
-  #  @type sparse_grid_opt(v, acc) ::
-  #          {:empty, Enumerable.t(String.t())}
-  #          | {:reduce_with, {grid_reducer(v, acc), acc}}
-  #          | {:reduce_with, grid_reducer(v, acc)}
-
   @spec sparse_grid(Enumerable.t(String.t()), opts :: [grid_opt(v, acc)]) ::
           {Sparse.t(v), acc}
         when v: var, acc: var
   def sparse_grid(input, opts \\ []) do
     empty = opts[:empty] || ["."]
 
-    reduce_with = opts[:reduce_with] || {&default_grid_reducer/2, nil}
+    reduce = opts[:reduce] || {&default_grid_reducer/2, nil}
 
     {f, initial_acc} =
-      case reduce_with do
+      case reduce do
         {f, initial_acc} -> {f, initial_acc}
         f when is_function(f) -> {f, nil}
       end
@@ -119,6 +117,10 @@ defmodule Aoc24.Parse do
             case f.({position, element}, acc) do
               {:keep, element2, new_acc} ->
                 new_grid = Sparse.put(grid, position, element2)
+                {new_grid, new_acc}
+
+              {:keep, element2, new_pos, new_acc} ->
+                new_grid = Sparse.put(grid, new_pos, element2)
                 {new_grid, new_acc}
 
               {:discard, new_acc} ->

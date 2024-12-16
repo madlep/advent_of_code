@@ -46,7 +46,7 @@ defmodule Aoc24.Day15 do
         moved_box_pos = move_pos(pos, move)
 
         case maybe_push_boxes(map, moved_box_pos, move) do
-          {:ok, new_map} -> {:ok, new_map |> Grid.delete(pos) |> Grid.put(moved_box_pos, "O")}
+          {:ok, new_map} -> {:ok, new_map |> Grid.move(pos, moved_box_pos)}
           :blocked -> :blocked
         end
     end
@@ -75,7 +75,7 @@ defmodule Aoc24.Day15 do
     {parse_map(map_input), parse_movements(movements_input)}
   end
 
-  defp parse_map(input), do: sparse_grid(input, reduce_with: &grid_reducer/2)
+  defp parse_map(input), do: sparse_grid(input, reduce: &grid_reducer/2)
 
   defp grid_reducer({robot_pos, "@"}, _acc), do: {:discard, robot_pos}
   defp grid_reducer({_pos, char}, acc), do: {:keep, char, acc}

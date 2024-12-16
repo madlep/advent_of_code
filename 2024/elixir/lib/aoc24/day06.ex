@@ -69,7 +69,7 @@ defmodule Aoc24.Day06 do
       {_position, element}, acc -> {:keep, element, acc}
     end
 
-    {grid, guard} = sparse_grid(input, reduce_with: {guard_reducer, nil})
+    {grid, guard} = sparse_grid(input, reduce: {guard_reducer, nil})
 
     {guard, grid}
   end
