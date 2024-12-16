@@ -55,7 +55,10 @@ defmodule Aoc24.Day15 do
     with moved_left_pos = move_pos(left_pos, move),
          moved_right_pos = move_pos(right_pos, move),
          {:ok, map} <- maybe_push_boxes(map, moved_left_pos, move) do
-      {:ok, map |> Grid.move(left_pos, moved_left_pos) |> Grid.move(right_pos, moved_right_pos)}
+      {
+        :ok,
+        map |> Grid.move(left_pos, moved_left_pos) |> Grid.move(right_pos, moved_right_pos)
+      }
     end
   end
 
@@ -63,7 +66,10 @@ defmodule Aoc24.Day15 do
     with moved_left_pos = move_pos(left_pos, move),
          moved_right_pos = move_pos(right_pos, move),
          {:ok, map} <- maybe_push_boxes(map, moved_right_pos, move) do
-      {:ok, map |> Grid.move(right_pos, moved_right_pos) |> Grid.move(left_pos, moved_left_pos)}
+      {
+        :ok,
+        map |> Grid.move(right_pos, moved_right_pos) |> Grid.move(left_pos, moved_left_pos)
+      }
     end
   end
 
@@ -72,7 +78,10 @@ defmodule Aoc24.Day15 do
          moved_right_pos = move_pos(right_pos, move),
          {:ok, map} <- maybe_push_boxes(map, moved_left_pos, move),
          {:ok, map} <- maybe_push_boxes(map, moved_right_pos, move) do
-      {:ok, map |> Grid.move(left_pos, moved_left_pos) |> Grid.move(right_pos, moved_right_pos)}
+      {
+        :ok,
+        map |> Grid.move(left_pos, moved_left_pos) |> Grid.move(right_pos, moved_right_pos)
+      }
     end
   end
 
