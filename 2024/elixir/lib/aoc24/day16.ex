@@ -51,11 +51,7 @@ defmodule Aoc24.Day16 do
     end
   end
 
-  defp parse(input) do
-    input
-    |> sparse_grid(reduce: {&parse_reducer/2, {nil, nil}})
-  end
-
+  defp parse(input), do: sparse_grid(input, reduce: {&parse_reducer/2, {nil, nil}})
   defp parse_reducer({from, "S"}, {nil, to}), do: {:discard, {from, to}}
   defp parse_reducer({to, "E"}, {from, nil}), do: {:discard, {from, to}}
   defp parse_reducer({_, "#"}, acc), do: {:keep, "#", acc}
