@@ -18,19 +18,16 @@ defmodule Aoc24.Day16 do
 
   defp shortest(pos, dir, target, grid, visited \\ %{}, cost \\ 0, mincost \\ nil, path \\ [])
 
-  # defp shortest(_, _, _, _, visited, cost, mincost, _path)
-  #      when cost > mincost do
-  #   IO.inspect("cost > mincost")
-  #   {visited, mincost}
-  # end
+  defp shortest(_, _, _, _, visited, cost, mincost, _path) when cost > mincost do
+    {visited, mincost}
+  end
 
   defp shortest(pos, _, target, _, visited, cost, mincost, _path) when pos == target do
-    IO.inspect("pos == target")
+    IO.inspect("pos == target, cost=#{cost} mincost=#{min(cost, mincost)}")
     {visited, min(cost, mincost)}
   end
 
   defp shortest(pos, dir, target, grid, visited, cost, mincost, path) do
-    dbg(cost)
     path = [{pos, dir} | path]
     # pry(grid, pos, dir, visited, cost, mincost, path)
 
@@ -38,20 +35,17 @@ defmodule Aoc24.Day16 do
       visited = Map.put(visited, {pos, dir}, cost)
 
       if Grid.at!(grid, pos) != "#" do
-        {mincosts, visited} =
-          [
-            {pos, Position.rotate_left(dir), 1000},
-            {Position.move(pos, dir), dir, 1},
-            {pos, Position.rotate_right(dir), 1000}
-          ]
-          |> Enum.map_reduce(visited, fn {pos, dir, dcost}, visited ->
-            {visited, mincost} =
-              shortest(pos, dir, target, grid, visited, cost + dcost, mincost, path)
+        [
+          {pos, Position.rotate_left(dir), 1000},
+          {pos, Position.rotate_right(dir), 1000},
+          {Position.move(pos, dir), dir, 1}
+        ]
+        |> Enum.reduce({visited, mincost}, fn {pos, dir, dcost}, {visited, mincost} ->
+          {visited, maybe_mincost} =
+            shortest(pos, dir, target, grid, visited, cost + dcost, mincost, path)
 
-            {mincost, visited}
-          end)
-
-        {visited, Enum.min(mincosts)}
+          {visited, min(mincost, maybe_mincost)}
+        end)
       else
         {visited, mincost}
       end
