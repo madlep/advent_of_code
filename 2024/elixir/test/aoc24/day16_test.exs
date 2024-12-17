@@ -5,7 +5,7 @@ defmodule Aoc24.Day16Test do
   doctest Day16
 
   setup do
-    example =
+    example1 =
       """
       ###############
       #.......#....E#
@@ -24,19 +24,40 @@ defmodule Aoc24.Day16Test do
       ###############
       """
 
-    {:ok, example: example}
+    example2 = """
+    #################
+    #...#...#...#..E#
+    #.#.#.#.#.#.#.#.#
+    #.#.#.#...#...#.#
+    #.#.#.#.###.#.#.#
+    #...#.#.#.....#.#
+    #.#.#.#.#.#####.#
+    #.#...#.#.#.....#
+    #.#.#####.#.###.#
+    #.#.#.......#...#
+    #.#.###.#####.###
+    #.#.#...#.....#.#
+    #.#.#.#####.###.#
+    #.#.#.........#.#
+    #.#.#.#########.#
+    #S#.............#
+    #################
+    """
+
+    {:ok, example1: example1, example2: example2}
   end
 
   describe "part 1" do
     test "part 1", ctx do
-      assert Day16.part1(ctx.example) == 7036
+      assert Day16.part1(ctx.example1) == 7036
+      assert Day16.part1(ctx.example2) == 11048
     end
   end
 
   describe "part 2" do
-    @tag skip: "pending"
     test "part 2", ctx do
-      assert Day16.part2(ctx.example) == :implement_me
+      assert Day16.part2(ctx.example1) == 45
+      assert Day16.part2(ctx.example2) == 64
     end
   end
 end
