@@ -3,50 +3,42 @@ defmodule Aoc24.Day16 do
   alias Aoc24.Grid
   alias Aoc24.Grid.Position
 
+  @east {1, 0}
+
   @spec part1(String.t()) :: integer()
   def part1(input) do
     {g, {from, to}} = parse(input)
-
-    walk(from, {1, 0}, to, g, 0, [from], &>/2, {%{}, 200_000, MapSet.new()})
-    |> elem(1)
+    {_, min, _} = walk({from, @east, 0, [from]}, {%{}, 200_000, MapSet.new()}, {to, g, &>/2})
+    min
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
     {g, {from, to}} = parse(input)
-
-    {costs, min, _} =
-      walk(from, {1, 0}, to, g, 0, [from], &>/2, {%{}, 200_000, MapSet.new()})
-
-    {_, _, best} =
-      walk(from, {1, 0}, to, g, 0, [from], &>=/2, {costs, min + 1, MapSet.new()})
-
+    {costs, min, _} = walk({from, @east, 0, [from]}, {%{}, 200_000, MapSet.new()}, {to, g, &>/2})
+    {_, _, best} = walk({from, @east, 0, [from]}, {costs, min + 1, MapSet.new()}, {to, g, &>=/2})
     MapSet.size(best)
   end
 
-  defp walk(_, _, _, _, cost, _path, _, {_, min, _} = acc) when cost > min,
+  defp walk({_, _, cost, _}, {_, min, _} = acc, _) when cost > min,
     do: acc
 
-  defp walk(p, _, to, _, cost, path, _, {costs, min, _best}) when p == to and cost < min,
+  defp walk({p, _, cost, path}, {costs, min, _best}, {to, _, _}) when p == to and cost < min,
     do: {costs, cost, MapSet.new([to | path])}
 
-  defp walk(p, _, to, _, cost, path, _, {costs, min, best}) when p == to and cost == min,
+  defp walk({p, _, cost, path}, {costs, min, best}, {to, _, _}) when p == to and cost == min,
     do: {costs, min, best |> MapSet.union(MapSet.new(path))}
 
-  defp walk(p, dir, to, g, cost, path, costs_check, {costs, min, best} = acc) do
+  defp walk({p, dir, cost, path}, {costs, min, best} = acc, {_, g, costs_check} = config) do
     with true <- costs_check.(costs[{p, dir}], cost),
          costs <- Map.put(costs, {p, dir}, cost),
          true <- Grid.at!(g, p) != "#" do
-      path = [p | path]
-
       [
-        {p, Position.rotate_right(dir), cost + 1000},
-        {p, Position.rotate_left(dir), cost + 1000},
-        {Position.move(p, dir), dir, cost + 1}
+        {p, Position.rotate_right(dir), cost + 1000, [p | path]},
+        {p, Position.rotate_left(dir), cost + 1000, [p | path]},
+        {Position.move(p, dir), dir, cost + 1, [p | path]}
       ]
-      |> Enum.reduce({costs, min, best}, fn {p, d, c}, acc ->
-        walk(p, d, to, g, c, path, costs_check, acc)
-      end)
+      |> Enum.reduce({costs, min, best}, &walk(&1, &2, config))
     else
       _ -> acc
     end
