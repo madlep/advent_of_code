@@ -6,27 +6,26 @@ defmodule Aoc24.Day16 do
   @spec part1(String.t()) :: integer()
   def part1(input) do
     {g, {from, to}} = parse(input)
-    dir = {1, 0}
 
-    walk(from, dir, to, g, %{}, 0, 200_000, [from], MapSet.new(), &>/2)
+    walk(from, {1, 0}, to, g, %{}, 0, 200_000, [from], MapSet.new(), &>/2)
     |> elem(1)
   end
 
   @spec part2(String.t()) :: integer()
   def part2(input) do
     {g, {from, to}} = parse(input)
-    dir = {1, 0}
 
     {costs, min, _} =
-      walk(from, dir, to, g, %{}, 0, 200_000, [from], MapSet.new(), &>/2)
+      walk(from, {1, 0}, to, g, %{}, 0, 200_000, [from], MapSet.new(), &>/2)
 
     {_, _, best} =
-      walk(from, dir, to, g, costs, 0, min + 1, [from], MapSet.new(), &>=/2)
+      walk(from, {1, 0}, to, g, costs, 0, min + 1, [from], MapSet.new(), &>=/2)
 
     MapSet.size(best)
   end
 
-  defp walk(_, _, _, _, costs, cost, min, _path, best, _) when cost > min, do: {costs, min, best}
+  defp walk(_, _, _, _, costs, cost, min, _path, best, _) when cost > min,
+    do: {costs, min, best}
 
   defp walk(p, _, to, _, costs, cost, min, path, _, _) when p == to and cost < min,
     do: {costs, cost, MapSet.new([to | path])}
