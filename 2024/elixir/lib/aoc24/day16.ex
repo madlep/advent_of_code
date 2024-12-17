@@ -7,7 +7,7 @@ defmodule Aoc24.Day16 do
   def part1(input) do
     {g, {from, to}} = parse(input)
 
-    walk(from, {1, 0}, to, g, %{}, 0, 200_000, [from], MapSet.new(), &>/2)
+    walk(from, {1, 0}, to, g, 0, [from], &>/2, {%{}, 200_000, MapSet.new()})
     |> elem(1)
   end
 
@@ -16,24 +16,24 @@ defmodule Aoc24.Day16 do
     {g, {from, to}} = parse(input)
 
     {costs, min, _} =
-      walk(from, {1, 0}, to, g, %{}, 0, 200_000, [from], MapSet.new(), &>/2)
+      walk(from, {1, 0}, to, g, 0, [from], &>/2, {%{}, 200_000, MapSet.new()})
 
     {_, _, best} =
-      walk(from, {1, 0}, to, g, costs, 0, min + 1, [from], MapSet.new(), &>=/2)
+      walk(from, {1, 0}, to, g, 0, [from], &>=/2, {costs, min + 1, MapSet.new()})
 
     MapSet.size(best)
   end
 
-  defp walk(_, _, _, _, costs, cost, min, _path, best, _) when cost > min,
-    do: {costs, min, best}
+  defp walk(_, _, _, _, cost, _path, _, {_, min, _} = acc) when cost > min,
+    do: acc
 
-  defp walk(p, _, to, _, costs, cost, min, path, _, _) when p == to and cost < min,
+  defp walk(p, _, to, _, cost, path, _, {costs, min, _best}) when p == to and cost < min,
     do: {costs, cost, MapSet.new([to | path])}
 
-  defp walk(p, _, to, _, costs, cost, min, path, best, _) when p == to and cost == min,
+  defp walk(p, _, to, _, cost, path, _, {costs, min, best}) when p == to and cost == min,
     do: {costs, min, best |> MapSet.union(MapSet.new(path))}
 
-  defp walk(p, dir, to, g, costs, cost, min, path, best, costs_check) do
+  defp walk(p, dir, to, g, cost, path, costs_check, {costs, min, best} = acc) do
     with true <- costs_check.(costs[{p, dir}], cost),
          costs <- Map.put(costs, {p, dir}, cost),
          true <- Grid.at!(g, p) != "#" do
@@ -44,11 +44,11 @@ defmodule Aoc24.Day16 do
         {p, Position.rotate_left(dir), cost + 1000},
         {Position.move(p, dir), dir, cost + 1}
       ]
-      |> Enum.reduce({costs, min, best}, fn {p, d, c}, {costs, min, best} ->
-        walk(p, d, to, g, costs, c, min, path, best, costs_check)
+      |> Enum.reduce({costs, min, best}, fn {p, d, c}, acc ->
+        walk(p, d, to, g, c, path, costs_check, acc)
       end)
     else
-      _ -> {costs, min, best}
+      _ -> acc
     end
   end
 
