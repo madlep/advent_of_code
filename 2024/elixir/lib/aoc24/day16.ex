@@ -8,8 +8,8 @@ defmodule Aoc24.Day16 do
     {grid, {start_pos, end_pos}} = parse(input)
     dir = {1, 0}
 
-    {_, mincost} =
-      shortest(start_pos, dir, end_pos, grid, %{}, 0, nil, [start_pos])
+    {_, mincost, _} =
+      shortest(start_pos, dir, end_pos, grid, %{}, 0, 200_000, [start_pos], MapSet.new(), &>/2)
 
     mincost
   end
@@ -19,51 +19,55 @@ defmodule Aoc24.Day16 do
     {grid, {start_pos, end_pos}} = parse(input)
     dir = {1, 0}
 
-    {_, _, best_paths} =
-      shortest(start_pos, dir, end_pos, grid, %{}, 0, nil, [start_pos])
+    {visited, mincost, _} =
+      shortest(start_pos, dir, end_pos, grid, %{}, 0, 200_000, [start_pos], MapSet.new(), &>/2)
 
-    # best_paths
-    # |> Enum.reduce(grid, fn p, grid -> Grid.put(grid, p, "O") end)
-    # |> Grid.print()
-    # |> IO.puts()
+    {_, _, best} =
+      shortest(
+        start_pos,
+        dir,
+        end_pos,
+        grid,
+        visited,
+        0,
+        mincost + 1,
+        [start_pos],
+        MapSet.new(),
+        &>=/2
+      )
 
-    MapSet.size(best_paths)
+    MapSet.size(best)
   end
 
-  defp shortest(_, _, _, _, visited, cost, mincost, _path) when cost > mincost,
-    do: {visited, mincost}
+  defp shortest(_, _, _, _, visited, cost, mincost, _path, best, _) when cost > mincost,
+    do: {visited, mincost, best}
 
-  defp shortest(pos, _, target, _, visited, cost, mincost, path)
+  defp shortest(pos, _, target, _, visited, cost, mincost, path, _best, _)
        when pos == target and cost < mincost do
-    IO.inspect("new best mincost, cost=#{cost} pathsize=#{length(path)}")
-    {visited, cost}
+    {visited, cost, MapSet.new([target | path])}
   end
 
-  defp shortest(pos, _, target, _, visited, cost, mincost, _path)
+  defp shortest(pos, _, target, _, visited, cost, mincost, path, best, _)
        when pos == target and cost == mincost do
-    {visited, mincost}
+    {visited, mincost, best |> MapSet.union(MapSet.new(path))}
   end
 
-  defp shortest(pos, dir, target, g, visited, cost, mincost, path) do
-    if visited[{pos, dir}] > cost do
-      visited = Map.put(visited, {pos, dir}, cost)
+  defp shortest(pos, dir, target, g, visited, cost, mincost, path, best, visited_check) do
+    with true <- visited_check.(visited[{pos, dir}], cost),
+         visited <- Map.put(visited, {pos, dir}, cost),
+         true <- Grid.at!(g, pos) != "#" do
+      path = [pos | path]
 
-      if Grid.at!(g, pos) != "#" do
-        path = [pos | path]
-
-        [
-          {pos, rotate_right(dir), cost + 1000},
-          {pos, rotate_left(dir), cost + 1000},
-          {move(pos, dir), dir, cost + 1}
-        ]
-        |> Enum.reduce({visited, mincost}, fn {p, d, c}, {visited, mincost} ->
-          shortest(p, d, target, g, visited, c, mincost, path)
-        end)
-      else
-        {visited, mincost}
-      end
+      [
+        {pos, rotate_right(dir), cost + 1000},
+        {pos, rotate_left(dir), cost + 1000},
+        {move(pos, dir), dir, cost + 1}
+      ]
+      |> Enum.reduce({visited, mincost, best}, fn {p, d, c}, {visited, mincost, best} ->
+        shortest(p, d, target, g, visited, c, mincost, path, best, visited_check)
+      end)
     else
-      {visited, mincost}
+      _ -> {visited, mincost, best}
     end
   end
 
@@ -75,21 +79,4 @@ defmodule Aoc24.Day16 do
   defp parse_reducer({start_pos, "S"}, {nil, end_pos}), do: {:discard, {start_pos, end_pos}}
   defp parse_reducer({end_pos, "E"}, {start_pos, nil}), do: {:discard, {start_pos, end_pos}}
   defp parse_reducer({_pos, "#"}, acc), do: {:keep, "#", acc}
-
-  # defp dir_s({-1, 0}), do: "<"
-  # defp dir_s({0, -1}), do: "^"
-  # defp dir_s({1, 0}), do: ">"
-  # defp dir_s({0, 1}), do: "v"
-
-  # defp pry(grid, pos, dir, visited, cost, mincost, path) do
-  #   grid_to_print =
-  #     path
-  #     |> Enum.reverse()
-  #     |> Enum.reduce(grid, fn {pos, dir}, g -> g |> Grid.put(pos, dir_s(dir)) end)
-  #     |> Grid.put(pos, "@")
-
-  #   IO.puts("\n" <> Grid.print(grid_to_print) <> "\nDIR: #{dir_s(dir)}\nCOST: #{cost}")
-  #   require IEx
-  #   IEx.pry()
-  # end
 end
