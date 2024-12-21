@@ -25,9 +25,10 @@ defmodule Aoc24.Day19 do
 
   defp count_patterns(pattern, towels, memo) do
     0..String.length(pattern)
-    |> Enum.reduce({0, memo}, fn n, {count, memo} ->
-      with {maybe_towel, rest_pattern} = String.split_at(pattern, n),
-           true <- MapSet.member?(towels, maybe_towel) do
+    |> Enum.reduce({0, memo}, fn n, {count, memo} = acc ->
+      {maybe_towel, rest_pattern} = String.split_at(pattern, n)
+
+      if MapSet.member?(towels, maybe_towel) do
         case memo[rest_pattern] do
           nil ->
             {child_count, memo} = count_patterns(rest_pattern, towels, memo)
@@ -37,7 +38,7 @@ defmodule Aoc24.Day19 do
             {count + child_count, memo}
         end
       else
-        _ -> {count, memo}
+        acc
       end
     end)
   end
