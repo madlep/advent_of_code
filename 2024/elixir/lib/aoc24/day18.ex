@@ -23,7 +23,7 @@ defmodule Aoc24.Day18 do
   def run(bytes, n, w, h) do
     bytes
     |> Enum.take(n)
-    |> Enum.reduce(Sparse.new(w + 1, h + 1), fn pos, grid -> Grid.put(grid, pos, "#") end)
+    |> Enum.reduce(Sparse.new(w + 1, h + 1), &Grid.put(&2, &1, "#"))
     |> walk({0, 0}, 0, %{})
     |> Map.get({w, h})
   end
