@@ -103,9 +103,16 @@ defmodule Aoc24.Day17Test do
   end
 
   describe "part 2" do
-    @tag skip: "pending"
-    test "part 2", ctx do
-      assert Day17.part2(ctx.example) == :implement_me
+    test "part 2" do
+      example = """
+      Register A: 38610541
+      Register B: 0
+      Register C: 0
+
+      Program: 2,4,1,1,7,5,1,5,4,3,5,5,0,3,3,0
+      """
+
+      assert Day17.part2(example) == [164_278_899_142_333, 164_278_899_142_589]
     end
   end
 end

@@ -11,9 +11,11 @@ defmodule Aoc24.Day17 do
     |> Enum.join(",")
   end
 
-  @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  @spec part2(String.t()) :: [integer()]
+  def part2(input) do
+    {_, program} = parse(input)
+    candidate = [1 | List.duplicate(0, length(program) - 1)]
+    quine_a(program, candidate, 0, length(program))
   end
 
   defp run(regs, ip, program, output) do
@@ -28,6 +30,36 @@ defmodule Aoc24.Day17 do
     else
       Enum.reverse(output)
     end
+  end
+
+  defp quine_a(program, candidate, n, prog_len) do
+    {_, prog_match} = Enum.split(program, prog_len - n - 1)
+
+    0..7
+    |> Enum.flat_map(fn c ->
+      candidate = candidate |> List.replace_at(n, c)
+      reg_a = prog_to_int(candidate)
+      out = run({reg_a, 0, 0}, 0, program, [])
+
+      if out == program do
+        [reg_a]
+      else
+        {_, out_match} = Enum.split(out, prog_len - n - 1)
+
+        if out_match == prog_match do
+          quine_a(program, candidate, n + 1, prog_len)
+        else
+          []
+        end
+      end
+    end)
+  end
+
+  defp prog_to_int(p) do
+    p
+    |> Enum.with_index(&{&1, length(p) - &2 - 1})
+    |> Enum.map(fn {n, i} -> n * 8 ** i end)
+    |> Enum.sum()
   end
 
   def execute(0 = _adv, opr, {a, b, c} = regs), do: {div(a, 2 ** cbo(opr, regs)), b, c}
