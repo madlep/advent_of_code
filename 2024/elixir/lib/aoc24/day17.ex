@@ -35,22 +35,19 @@ defmodule Aoc24.Day17 do
   defp quine_a(program, candidate, n, prog_len) do
     {_, prog_match} = Enum.split(program, prog_len - n - 1)
 
-    0..7
-    |> Enum.flat_map(fn c ->
-      candidate = candidate |> List.replace_at(n, c)
+    Enum.flat_map(0..7, fn c ->
+      candidate = List.replace_at(candidate, n, c)
       reg_a = prog_to_int(candidate)
-      out = run({reg_a, 0, 0}, 0, program, [])
 
-      if out == program do
-        [reg_a]
-      else
-        {_, out_match} = Enum.split(out, prog_len - n - 1)
+      case run({reg_a, 0, 0}, 0, program, []) do
+        ^program ->
+          [reg_a]
 
-        if out_match == prog_match do
-          quine_a(program, candidate, n + 1, prog_len)
-        else
-          []
-        end
+        out ->
+          case Enum.split(out, prog_len - n - 1) do
+            {_, ^prog_match} -> quine_a(program, candidate, n + 1, prog_len)
+            _ -> []
+          end
       end
     end)
   end
@@ -64,11 +61,11 @@ defmodule Aoc24.Day17 do
 
   def execute(0 = _adv, opr, {a, b, c} = regs), do: {div(a, 2 ** cbo(opr, regs)), b, c}
   def execute(1 = _bxl, opr, {a, b, c}), do: {a, bxor(b, opr), c}
-  def execute(2 = _bst, opr, {a, _, c} = regs), do: {a, cbo(opr, regs) &&& 7, c}
+  def execute(2 = _bst, opr, {a, _, c} = regs), do: {a, rem(cbo(opr, regs), 8), c}
   def execute(3 = _jnz, _, {0, _, _} = regs), do: regs
   def execute(3 = _jnz, opr, _), do: {:jmp, opr}
   def execute(4 = _bxc, _, {a, b, c}), do: {a, bxor(b, c), c}
-  def execute(5 = _out, opr, regs), do: {:out, cbo(opr, regs) &&& 7}
+  def execute(5 = _out, opr, regs), do: {:out, rem(cbo(opr, regs), 8)}
   def execute(6 = _bdv, opr, {a, _, c} = regs), do: {a, div(a, 2 ** cbo(opr, regs)), c}
   def execute(7 = _cdv, opr, {a, b, _} = regs), do: {a, b, div(a, 2 ** cbo(opr, regs))}
 
