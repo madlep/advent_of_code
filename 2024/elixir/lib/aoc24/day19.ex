@@ -2,23 +2,14 @@ defmodule Aoc24.Day19 do
   import Aoc24.Parse
 
   @spec part1(String.t()) :: integer()
-  def part1(input) do
-    {towels, patterns} = parse(input)
-
-    patterns
-    |> Enum.map(&count_patterns(&1, towels, %{}))
-    |> Enum.filter(&(elem(&1, 0) > 0))
-    |> Enum.count()
-  end
+  def part1(input), do: input |> run() |> Enum.filter(&(&1 > 0)) |> Enum.count()
 
   @spec part2(String.t()) :: integer()
-  def part2(input) do
-    {towels, patterns} = parse(input)
+  def part2(input), do: input |> run() |> Enum.sum()
 
-    patterns
-    |> Enum.map(&count_patterns(&1, towels, %{}))
-    |> Enum.map(&elem(&1, 0))
-    |> Enum.sum()
+  defp run(input) do
+    {towels, patterns} = parse(input)
+    Enum.map(patterns, &(count_patterns(&1, towels, %{}) |> elem(0)))
   end
 
   defp count_patterns("", _towels, memo), do: {1, memo}
