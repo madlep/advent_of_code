@@ -18,13 +18,10 @@ defmodule Aoc24.Day19 do
   defp possible_pattern?("", _towels), do: true
 
   defp possible_pattern?(pattern, towels) do
-    0..String.length(pattern)
-    |> Enum.any?(fn n ->
-      {maybe_towel, rest_pattern} = String.split_at(pattern, n)
-
-      if MapSet.member?(towels, maybe_towel),
-        do: possible_pattern?(rest_pattern, towels),
-        else: false
+    Enum.any?(0..String.length(pattern), fn n ->
+      with {maybe_towel, rest_pattern} = String.split_at(pattern, n),
+           true <- MapSet.member?(towels, maybe_towel),
+           do: possible_pattern?(rest_pattern, towels)
     end)
   end
 
