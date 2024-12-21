@@ -33,16 +33,22 @@ defmodule Aoc24.Grid do
 
   @spec print(t(_v)) :: String.t() when _v: var
   def print(g) do
-    g
-    |> ys()
-    |> Enum.map(fn y ->
+    rows =
       g
-      |> xs()
-      |> Enum.map(fn x ->
-        at(g, {x, y}) || " "
+      |> ys()
+      |> Enum.map(fn y ->
+        g
+        |> xs()
+        |> Enum.map(fn x ->
+          at(g, {x, y}) || "."
+        end)
+        |> Enum.join()
       end)
-      |> Enum.join()
-    end)
-    |> Enum.join("\n")
+      |> Enum.map(&("|" <> &1 <> "|"))
+      |> Enum.join("\n")
+
+    top_bottom = "+" <> String.duplicate("-", Gridded.width(g)) <> "+"
+
+    Enum.join([top_bottom, rows, top_bottom], "\n")
   end
 end
