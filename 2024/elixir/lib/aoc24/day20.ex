@@ -4,19 +4,19 @@ defmodule Aoc24.Day20 do
   alias Aoc24.Grid.Position
 
   @spec part1(String.t(), n :: integer()) :: integer()
-  def part1(input, n \\ 100) do
+  def part1(input, min_saving \\ 100), do: run(input, min_saving, 2)
+
+  @spec part2(String.t(), n :: integer()) :: integer()
+  def part2(input, min_saving \\ 100), do: run(input, min_saving, 3)
+
+  defp run(input, min_saving, max_shortcut) do
     {grid, {start, _ending}} = parse(input)
     track_costs = build_track(grid, start, 0, %{})
 
     track_costs
-    |> Enum.flat_map(fn {pos, cost} -> shortcuts(pos, cost, track_costs, grid, 2) end)
-    |> Enum.filter(&(&1 >= n))
+    |> Enum.flat_map(fn {pos, cost} -> shortcuts(pos, cost, track_costs, grid, max_shortcut) end)
+    |> Enum.filter(&(&1 >= min_saving))
     |> Enum.count()
-  end
-
-  @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
   end
 
   defp build_track(grid, pos, cost, positions) do
@@ -31,24 +31,30 @@ defmodule Aoc24.Day20 do
     end
   end
 
-  defp shortcuts(pos, start_cost, track_costs, grid, 0) do
-    if Grid.at(grid, pos) != "#" do
+  defp shortcuts(pos, start_cost, track_costs, grid, limit) do
+    if Grid.contains?(grid, pos) do
       final_cost = track_costs[pos]
 
-      if(final_cost < start_cost) do
-        [start_cost - final_cost]
+      shortcuts =
+        if final_cost < start_cost && Grid.at(grid, pos) != "#" do
+          [start_cost - final_cost]
+        else
+          []
+        end
+
+      if limit > 0 do
+        more_shortcuts =
+          pos
+          |> Position.neighbours()
+          |> Enum.flat_map(&shortcuts(&1, start_cost - 1, track_costs, grid, limit - 1))
+
+        shortcuts ++ more_shortcuts
       else
-        []
+        shortcuts
       end
     else
       []
     end
-  end
-
-  defp shortcuts(pos, start_cost, track_costs, grid, limit) do
-    pos
-    |> Position.neighbours()
-    |> Enum.flat_map(&shortcuts(&1, start_cost - 1, track_costs, grid, limit - 1))
   end
 
   defp parse(input) do
