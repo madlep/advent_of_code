@@ -7,16 +7,25 @@ defmodule Aoc24.Day20 do
   def part1(input, min_saving \\ 100), do: run(input, min_saving, 2)
 
   @spec part2(String.t(), n :: integer()) :: integer()
-  def part2(input, min_saving \\ 100), do: run(input, min_saving, 3)
+  def part2(input, min_saving \\ 100), do: run(input, min_saving, 20)
 
   defp run(input, min_saving, max_shortcut) do
-    {grid, {start, _ending}} = parse(input)
+    {grid, start} = parse(input)
     track_costs = build_track(grid, start, 0, %{})
 
-    track_costs
-    |> Enum.flat_map(fn {pos, cost} -> shortcuts(pos, cost, track_costs, grid, max_shortcut) end)
-    |> Enum.filter(&(&1 >= min_saving))
-    |> Enum.count()
+    Enum.sum_by(track_costs, fn {start_pos, start_cost} ->
+      start_pos
+      |> Position.within_manhattan(max_shortcut)
+      |> Enum.sum_by(fn finish_pos ->
+        with finish_cost when finish_cost != nil <- track_costs[finish_pos],
+             shortcut_cost = Position.manhattan_distance(start_pos, finish_pos),
+             true <- finish_cost - start_cost - shortcut_cost >= min_saving do
+          1
+        else
+          _ -> 0
+        end
+      end)
+    end)
   end
 
   defp build_track(grid, pos, cost, positions) do
@@ -31,37 +40,9 @@ defmodule Aoc24.Day20 do
     end
   end
 
-  defp shortcuts(pos, start_cost, track_costs, grid, limit) do
-    if Grid.contains?(grid, pos) do
-      final_cost = track_costs[pos]
+  defp parse(input), do: sparse_grid(input, reduce: {&grid_reducer/2, nil})
 
-      shortcuts =
-        if final_cost < start_cost && Grid.at(grid, pos) != "#" do
-          [start_cost - final_cost]
-        else
-          []
-        end
-
-      if limit > 0 do
-        more_shortcuts =
-          pos
-          |> Position.neighbours()
-          |> Enum.flat_map(&shortcuts(&1, start_cost - 1, track_costs, grid, limit - 1))
-
-        shortcuts ++ more_shortcuts
-      else
-        shortcuts
-      end
-    else
-      []
-    end
-  end
-
-  defp parse(input) do
-    sparse_grid(input, reduce: {&grid_reducer/2, {nil, nil}})
-  end
-
-  defp grid_reducer({start, "S"}, {nil, ending}), do: {:discard, {start, ending}}
-  defp grid_reducer({ending, "E"}, {start, nil}), do: {:discard, {start, ending}}
+  defp grid_reducer({start, "S"}, nil), do: {:discard, start}
+  defp grid_reducer({_ending, "E"}, acc), do: {:discard, acc}
   defp grid_reducer({_pos, "#"}, acc), do: {:keep, "#", acc}
 end

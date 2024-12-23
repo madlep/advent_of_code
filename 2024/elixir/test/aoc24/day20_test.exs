@@ -44,9 +44,48 @@ defmodule Aoc24.Day20Test do
   end
 
   describe "part 2" do
-    @tag skip: "pending"
     test "part 2", ctx do
-      assert Day20.part2(ctx.example) == :implement_me
+      # There are 3 cheats that save 76 picoseconds
+      assert Day20.part2(ctx.example, 76) == 3
+
+      # There are 4 cheats that save 74 picoseconds.
+      assert Day20.part2(ctx.example, 74) == 7
+
+      # There are 22 cheats that save 72 picoseconds.
+      assert Day20.part2(ctx.example, 72) == 29
+
+      # There are 12 cheats that save 70 picoseconds.
+      assert Day20.part2(ctx.example, 70) == 41
+
+      # There are 14 cheats that save 68 picoseconds.
+      assert Day20.part2(ctx.example, 68) == 55
+
+      # There are 12 cheats that save 66 picoseconds.
+      assert Day20.part2(ctx.example, 66) == 67
+
+      # There are 19 cheats that save 64 picoseconds.
+      assert Day20.part2(ctx.example, 64) == 86
+
+      # There are 20 cheats that save 62 picoseconds.
+      assert Day20.part2(ctx.example, 62) == 106
+
+      # There are 23 cheats that save 60 picoseconds.
+      assert Day20.part2(ctx.example, 60) == 129
+
+      # There are 25 cheats that save 58 picoseconds.
+      assert Day20.part2(ctx.example, 58) == 154
+
+      # There are 39 cheats that save 56 picoseconds.
+      assert Day20.part2(ctx.example, 56) == 193
+
+      # There are 29 cheats that save 54 picoseconds.
+      assert Day20.part2(ctx.example, 54) == 222
+
+      # There are 31 cheats that save 52 picoseconds.
+      assert Day20.part2(ctx.example, 52) == 253
+
+      # There are 32 cheats that save 50 picoseconds.
+      assert Day20.part2(ctx.example, 50) == 285
     end
   end
 end

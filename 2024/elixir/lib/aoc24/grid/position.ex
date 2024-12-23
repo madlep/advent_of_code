@@ -33,4 +33,20 @@ defmodule Aoc24.Grid.Position do
 
   @spec up(t()) :: t()
   def right({x, y}), do: {x + 1, y}
+
+  @spec within_manhattan(t(), range :: integer()) :: Enumerable.t(t())
+  def within_manhattan(pos, range) do
+    -range..range
+    |> Stream.flat_map(fn yi ->
+      x_2 = range - abs(yi)
+
+      -x_2..x_2
+      |> Stream.map(fn xi ->
+        move(pos, {xi, yi})
+      end)
+    end)
+  end
+
+  @spec manhattan_distance(t(), t()) :: integer()
+  def manhattan_distance({x1, y1}, {x2, y2}), do: abs(x2 - x1) + abs(y2 - y1)
 end
