@@ -28,15 +28,13 @@ defmodule Aoc24.Day20 do
     end)
   end
 
-  defp build_track(grid, pos, cost, positions) do
-    if Grid.at(grid, pos) != "#" && positions[pos] == nil do
-      positions = Map.put(positions, pos, cost)
-
+  defp build_track(grid, pos, cost, track) do
+    if Grid.at(grid, pos) != "#" && track[pos] == nil do
       pos
       |> Position.neighbours()
-      |> Enum.reduce(positions, &build_track(grid, &1, cost + 1, &2))
+      |> Enum.reduce(Map.put(track, pos, cost), &build_track(grid, &1, cost + 1, &2))
     else
-      positions
+      track
     end
   end
 
