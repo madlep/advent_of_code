@@ -7,10 +7,10 @@ defmodule Aoc25.Day06Test do
   setup do
     example =
       """
-      123 328  51 64
-      45 64  387 23
-      6 98  215 314
-      *   +   *   +
+      123 328  51 64 
+       45 64  387 23 
+        6 98  215 314
+      *   +   *   +  
       """
 
     {:ok, example: example}
@@ -23,9 +23,8 @@ defmodule Aoc25.Day06Test do
   end
 
   describe "part 2" do
-    @tag skip: "pending"
     test "part 2", ctx do
-      assert Day06.part2(ctx.example) == -67
+      assert Day06.part2(ctx.example) == 3_263_827
     end
   end
 end
