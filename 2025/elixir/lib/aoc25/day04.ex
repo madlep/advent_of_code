@@ -7,8 +7,10 @@ defmodule Aoc25.Day04 do
   end
 
   @spec part2(String.t()) :: integer()
-  def part2(_input) do
-    -1
+  def part2(input) do
+    input
+    |> parse()
+    |> remove_accessible
   end
 
   defp parse(input) do
@@ -29,16 +31,31 @@ defmodule Aoc25.Day04 do
   defp parse_cell({".", _x}, _y), do: []
   defp parse_cell({"@", x}, y), do: [{{x, y}, :roll}]
 
-  defp count_accessible(cells) do
-    cells
-    |> Map.filter(fn {coord, :roll} -> count_neighbours(cells, coord) < 4 end)
+  defp count_accessible(grid) do
+    grid
+    |> find_accessible()
     |> Enum.count()
   end
 
-  defp count_neighbours(cells, coord) do
+  defp remove_accessible(grid, acc \\ 0)
+
+  defp remove_accessible(grid, acc) do
+    case find_accessible(grid) do
+      [] -> acc
+      coords -> remove_accessible(Map.drop(grid, coords), acc + length(coords))
+    end
+  end
+
+  defp find_accessible(grid) do
+    grid
+    |> Map.keys()
+    |> Enum.filter(fn coord -> count_neighbours(grid, coord) < 4 end)
+  end
+
+  defp count_neighbours(grid, coord) do
     coord
     |> neighbours()
-    |> Enum.filter(&Map.has_key?(cells, &1))
+    |> Enum.filter(&Map.has_key?(grid, &1))
     |> Enum.count()
   end
 
